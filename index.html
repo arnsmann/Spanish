@@ -67,10 +67,19 @@ try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.cards)S=r}catch(e){}
 const THEMES={forest:{n:'Forest',bar:'#222b26'},beach:{n:'Beach',bar:'#f3ead7'},mountain:{n:'Snowy mountains',bar:'#e6eef5'},autumn:{n:'Autumn town',bar:'#2a2420'},city:{n:'City at night',bar:'#1f2530'}};
 function applyTheme(){const t=THEMES[S.theme]?S.theme:'forest';document.documentElement.setAttribute('data-theme',t);const m=document.querySelector('meta[name=theme-color]');if(m)m.content=THEMES[t].bar}
 function setTheme(v){S.theme=v;save();render()}
+// Sync between devices through a private GitHub Gist. The token stays in this browser only and is never part of the backup.
+const TK='vocab-trainer-token',SK='vocab-trainer-sync',GF='vocab-trainer.json';
+let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},booting=false,pushT=null;
+try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
+function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 const seed=[];
 migrate();
 if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){
+  S.mod=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  if(SYN.tok&&SYN.gid&&!SY.conf&&!booting){clearTimeout(pushT);pushT=setTimeout(()=>syncNow(false),15000)}
+}
 function addCard(es,de,wait){
   const c={id:Date.now()+Math.floor(Math.random()*1e6),l:S.view,es:es,de:de,sd:{p:1,due:0},ds:{p:1,due:0}};
   if(wait)c.w=true;
@@ -166,6 +175,113 @@ function render(){
   const f=$('#ans')||$('#re');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
 }
 
+// What goes to the cloud: everything except the pasted course text.
+function snap(){const o=Object.assign({},S);delete o.courseText;return JSON.stringify(o)}
+function gh(path,opt){
+  opt=opt||{};
+  const h={'Authorization':'Bearer '+SYN.tok,'Accept':'application/vnd.github+json'};
+  if(opt.body)h['Content-Type']='application/json';
+  return fetch('https://api.github.com'+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(r=>{
+    if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e}
+    return r.json();
+  });
+}
+async function fetchRemote(){
+  const g=await gh('/gists/'+SYN.gid),f=g.files&&g.files[GF];
+  if(!f)throw Object.assign(new Error('missing'),{status:404});
+  let t=f.content;
+  if(f.truncated||t==null)t=await (await fetch(f.raw_url)).text();
+  const r=JSON.parse(t);
+  if(!r||!r.cards)throw new Error('bad data');
+  return r;
+}
+async function pushNow(){
+  if(!S.mod)S.mod=Date.now();
+  const c=snap(),m=S.mod;
+  await gh('/gists/'+SYN.gid,{method:'PATCH',body:{files:{[GF]:{content:c}}}});
+  SYN.base=m;synSave();
+}
+function applyRemote(r){
+  const keep=S.courseText;
+  S=r;if(keep)S.courseText=keep;
+  migrate();
+  S.mod=r.mod||Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  SYN.base=S.mod;synSave();loadCourse();render();
+}
+function synErr(e){
+  if(e.status===401)return 'GitHub did not accept the token. Check it and connect again.';
+  if(e.status===403)return 'GitHub refused the request. The token needs the gist permission, or try again in a few minutes.';
+  if(e.status===404)return 'The sync notebook was not found. Disconnect and connect again.';
+  if(e.name==='TypeError')return 'No connection. It will sync again when you are online.';
+  return 'Something went wrong while syncing.';
+}
+function synUi(){
+  document.querySelectorAll('.synst').forEach(el=>el.innerHTML=synStatus());
+}
+function synStatus(){
+  if(SY.busy)return 'Syncing...';
+  if(SY.st==='err')return esc(SY.msg);
+  if(SY.last){const m=Math.round((Date.now()-SY.last)/MIN);return 'Synced '+(m<1?'just now':m+' min ago')}
+  return 'Connected. Not synced yet.';
+}
+async function syncNow(manual){
+  if(!SYN.tok||!SYN.gid||SY.busy||SY.conf)return;
+  SY.busy=true;SY.st='';synUi();
+  try{
+    const r=await fetchRemote(),rm=r.mod||0,lm=S.mod||0,b=SYN.base,lc=lm>b,rc=rm>b;
+    if(lc&&rc&&rm!==lm){SY.conf={r};render()}
+    else if(rc&&!lc){if(manual||(!Q&&ed===null))applyRemote(r)}
+    else if(lc)await pushNow();
+    SY.last=Date.now();
+  }catch(e){SY.st='err';SY.msg=synErr(e)}
+  SY.busy=false;synUi();
+}
+async function connectSync(){
+  const t=$('#tok').value.trim();
+  if(!t)return;
+  SYN.tok=t;SYN.gid='';SY.busy=true;SY.st='';SY.msg='';synUi();
+  try{
+    let found=null;
+    for(let pg=1;pg<=5&&!found;pg++){
+      const l=await gh('/gists?per_page=100&page='+pg);
+      if(!l.length)break;
+      found=l.find(g=>g.files&&g.files[GF]);
+    }
+    if(found){
+      SYN.gid=found.id;
+      const r=await fetchRemote();
+      if((S.cards.length)&&(r.mod||0)>0){SYN.base=0;synSave();SY.conf={r}}
+      else applyRemote(r);
+    }else{
+      if(!S.mod)S.mod=Date.now();
+      const g=await gh('/gists',{method:'POST',body:{description:'Spanish trainer sync',public:false,files:{[GF]:{content:snap()}}}});
+      SYN.gid=g.id;SYN.base=S.mod;synSave();
+    }
+    synSave();SY.last=Date.now();
+  }catch(e){SYN.tok='';SYN.gid='';SY.st='err';SY.msg=synErr(e);synSave()}
+  SY.busy=false;render();
+}
+async function resolveSync(useCloud){
+  const r=SY.conf&&SY.conf.r;SY.conf=null;
+  if(useCloud&&r){applyRemote(r);SY.last=Date.now();return}
+  SY.busy=true;synUi();
+  try{S.mod=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}await pushNow();SY.last=Date.now()}
+  catch(e){SY.st='err';SY.msg=synErr(e)}
+  SY.busy=false;render();
+}
+function disconnectSync(){SYN={tok:'',gid:'',base:0};SY={st:'',msg:'',conf:null,busy:false,last:0};try{localStorage.removeItem(TK);localStorage.removeItem(SK)}catch(e){}render()}
+function conflictCard(){
+  return '<div class="card"><b>Two versions found</b><div class="mu" style="margin:6px 0 10px">Your progress changed on this device and in the cloud. Choose which one to keep. The other one is replaced.</div><button class="btn" onclick="resolveSync(true)">Keep the cloud version</button><button class="btn sec" onclick="resolveSync(false)">Keep this device</button></div>';
+}
+function syncCard(){
+  const on=SYN.tok&&SYN.gid;
+  if(SY.conf)return conflictCard();
+  if(on)return '<div class="card"><div class="mu" style="margin-bottom:6px">Sync between devices</div><div class="mu synst" style="margin-bottom:8px;color:var(--tx)">'+synStatus()+'</div><button class="btn sec" onclick="syncNow(true)">Sync now</button><button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="disconnectSync()">Disconnect this device</button><div class="mu" style="margin-top:8px">Disconnecting keeps your progress on this device and in the cloud. The pasted course text is not synced, so paste it again on a new device if you want to add more packs.</div></div>';
+  return '<div class="card"><div class="mu" style="margin-bottom:6px">Sync between devices</div><div class="mu" style="margin-bottom:8px">Your progress is saved in an unlisted file (a Gist) in your own GitHub account. Only people with its long web address could see it. Do this once on each device:</div>'
+   +'<div class="mu" style="margin-bottom:8px">1. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Spanish%20trainer" target="_blank" rel="noopener" style="color:var(--ac)">Open this GitHub page</a> and sign in.<br>2. Set Expiration to No expiration. The gist box is already ticked, leave everything else off.<br>3. Scroll down, tap Generate token, copy the token.<br>4. Paste it below and tap Connect.</div>'
+   +'<input id="tok" type="password" placeholder="Paste your token here" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"><button class="btn" onclick="connectSync()">Connect</button><div class="mu synst" style="margin-top:8px">'+(SY.busy?'Connecting...':SY.st==='err'?esc(SY.msg):'')+'</div></div>';
+}
 function forecastCard(it,now,wt){
   const d=new Date(),eod=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),eot=eod+DAY,e6=eod+6*DAY;
   const a=[0,0,0];
@@ -174,14 +290,14 @@ function forecastCard(it,now,wt){
   return '<div class="card"><div class="mu" style="margin-bottom:4px">Coming up</div>'+row('Later today',a[0]+' reviews')+row('Tomorrow',a[1]+' reviews')+row('New words tomorrow',nt)+row('In 2 to 6 days',a[2]+' reviews')+'<div class="mu" style="margin-top:6px">Reviews count each direction separately. Cards you get wrong come back sooner.</div></div>';
 }
 function homeView(){
-  daily();
+  if(!booting)daily();
   const it=items(),now=Date.now();
   const due=it.filter(x=>x.c[x.d].due<=now).length;
   const cnt=[0,0,0,0,0,0,0];it.forEach(x=>cnt[x.c[x.d].p]++);
   const mx=Math.max(1,...cnt);
   const future=it.map(x=>x.c[x.d].due).filter(d=>d>now);
   const next=future.length?Math.min(...future)-now:0;
-  let h='<h1>Spanish Trainer</h1><div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
+  let h='<h1>Spanish Trainer</h1>'+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
   h+=forecastCard(it,now,S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length);
@@ -199,6 +315,7 @@ function homeView(){
   for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
   h+='</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
+  h+=syncCard();
   return h;
 }
 
@@ -300,6 +417,7 @@ function next(){
   if(Q.st==='bad'&&!it.retry)Q.queue.splice(Math.min(4,Q.queue.length),0,{c:it.c,d:it.d,retry:true});
   if(!(Q.st==='bad'&&!it.retry))Q.done++;
   Q.st='ask';Q.tried=false;Q.hint=false;Q.val='';render();
+  if(!Q.queue.length&&SYN.tok&&SYN.gid){clearTimeout(pushT);setTimeout(()=>syncNow(false),300)}
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||tab!=='learn'||!Q||!Q.queue.length)return;
@@ -445,8 +563,16 @@ function imp(){
     const keep=S.courseText;S=r;if(!S.courseText&&keep)S.courseText=keep;S.seeded=true;migrate();loadCourse();save();render();
   }catch(e){$('#bkmsg').textContent='That text is not a valid backup.'}
 }
+document.addEventListener('visibilitychange',()=>{
+  if(!SYN.tok||!SYN.gid)return;
+  if(document.visibilityState==='visible'){if(!Q)syncNow(false)}
+  else if((S.mod||0)>SYN.base)syncNow(false);
+});
 loadCourse();
-render();
+if(SYN.tok&&SYN.gid){
+  booting=true;render();
+  Promise.race([syncNow(false),new Promise(r=>setTimeout(r,6000))]).then(()=>{booting=false;render()});
+}else render();
 </script>
 </body>
 </html>
