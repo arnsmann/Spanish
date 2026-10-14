@@ -44,6 +44,7 @@ nav button.on{color:var(--ac)}
 .prog i{display:block;height:100%;background:var(--ac);border-radius:3px}
 .dia{font-style:italic;font-weight:500;color:var(--ac);font-size:.6em;white-space:nowrap}
 .w .dia,.fb .dia{font-size:.85em}
+.w button.e{color:var(--ac)}
 </style>
 </head>
 <body>
@@ -59,12 +60,17 @@ const seed=[['hola','hallo'],['gracias','danke'],['por favor','bitte'],['el perr
 migrate();
 if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function addCard(es,de){S.cards.push({id:Date.now()+Math.floor(Math.random()*1e6),l:S.view,es:es,de:de,sd:{p:1,due:0},ds:{p:1,due:0}})}
+function addCard(es,de,wait){
+  const c={id:Date.now()+Math.floor(Math.random()*1e6),l:S.view,es:es,de:de,sd:{p:1,due:0},ds:{p:1,due:0}};
+  if(wait)c.w=true;
+  S.cards.push(c);
+}
 // Makes sure every card belongs to a list and the selected lists exist (also upgrades older saved data).
 function migrate(){
   if(!S.lists||!S.lists.length)S.lists=[{id:1,name:'My words'}];
   S.cards.forEach(c=>{if(!S.lists.some(l=>l.id===c.l))c.l=S.lists[0].id});
   S.lists.forEach(l=>{if(l.lang!=='en')l.lang='de'});
+  if(!S.perDay)S.perDay=5;
   if(!S.lists.some(l=>l.id===S.view))S.view=S.lists[0].id;
   if(S.sel!=='all'&&!S.lists.some(l=>l.id===S.sel))S.sel='all';
 }
@@ -85,13 +91,31 @@ function grade(input,answer){
 }
 function items(){
   const out=[];
-  S.cards.filter(c=>S.sel==='all'||c.l===S.sel).forEach(c=>['sd','ds'].forEach(d=>{if(S.dir==='both'||S.dir===d)out.push({c:c,d:d})}));
+  S.cards.filter(c=>!c.w&&(S.sel==='all'||c.l===S.sel)).forEach(c=>['sd','ds'].forEach(d=>{if(S.dir==='both'||S.dir===d)out.push({c:c,d:d})}));
   return out;
 }
+// New words wait in a queue (c.w). Each day up to S.perDay of them are released, taking turns between lists.
+function today(){const d=new Date();return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()}
+function releaseNew(n){
+  const qs=S.lists.map(l=>S.cards.filter(c=>c.w&&c.l===l.id&&(S.sel==='all'||S.sel===l.id))).filter(q=>q.length);
+  let k=0;
+  while(k<n&&qs.some(q=>q.length)){
+    for(const q of qs){if(k>=n)break;const c=q.shift();if(c){delete c.w;c.sd.due=0;c.ds.due=0;k++}}
+  }
+  return k;
+}
+function daily(){
+  let ch=false;
+  if(S.day!==today()){S.day=today();S.rel=0;ch=true}
+  const n=S.perDay-(S.rel||0);
+  if(n>0){const k=releaseNew(n);if(k){S.rel=(S.rel||0)+k;ch=true}}
+  if(ch)save();
+}
+function more(n){S.rel=(S.rel||0)+releaseNew(n);save();render()}
 function rel(ms){const m=Math.max(1,Math.round(ms/MIN));if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+' h';return Math.round(h/24)+' days'}
 
 let tab='learn', Q=null;
-function go(t){tab=t;Q=null;delArm=false;render()}
+function go(t){tab=t;Q=null;delArm=false;ed=null;render()}
 function render(){
   $('#t-learn').className=tab==='learn'?'on':'';
   $('#t-words').className=tab==='words'?'on':'';
@@ -100,6 +124,7 @@ function render(){
 }
 
 function homeView(){
+  daily();
   const it=items(),now=Date.now();
   const due=it.filter(x=>x.c[x.d].due<=now).length;
   const cnt=[0,0,0,0,0,0,0];it.forEach(x=>cnt[x.c[x.d].p]++);
@@ -109,6 +134,10 @@ function homeView(){
   let h='<h1>Spanish Trainer</h1><div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
+  const wt=S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length;
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">New words per day</div><select onchange="S.perDay=+this.value;save();render()">'+[3,5,8,10,15,20,9999].map(n=>'<option value="'+n+'"'+(S.perDay===n?' selected':'')+'>'+(n===9999?'All at once':n)+'</option>').join('')+'</select>'
+   +'<div class="mu" style="margin-top:10px">Released today: '+(S.rel||0)+'. Waiting in this selection: '+wt+'.</div>'
+   +(wt?'<button class="btn sec" onclick="more(5)">Release 5 more now</button><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'')+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
    +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
@@ -228,8 +257,8 @@ function wordsView(){
    +'<div class="card"><input id="nes" placeholder="Español" autocapitalize="off" autocorrect="off" spellcheck="false">'
    +keysRow('nes')+'<input id="nde" placeholder="'+LN[curList().lang]+' (alternatives with a slash)" autocorrect="off" spellcheck="false" style="margin-top:2px">'
    +'<button class="btn" onclick="add()">Add word</button></div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><button class="btn sec" onclick="bulk()">Import lines</button></div>';
-  h+='<div class="card">'+(l.length?l.map(c=>'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+'</div></div><button onclick="del('+c.id+')">✕</button></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation. Imported words are released a few per day (see the Learn tab), unless you tick the box below.</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="bnow" type="checkbox" style="width:auto">Make all of them available right away</label><button class="btn sec" onclick="bulk()">Import lines</button></div>';
+  h+='<div class="card">'+(l.length?l.map(c=>c.id===ed?editRow(c):'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+(c.w?' · waiting':'')+'</div></div><div style="white-space:nowrap"><button class="e" onclick="edit('+c.id+')">✎</button><button onclick="del('+c.id+')">✕</button></div></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
    +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
   return h;
@@ -240,15 +269,27 @@ function add(){
   addCard(a,b);save();render();$('#nes').focus();
 }
 function bulk(){
-  let n=0;
+  let n=0;const now=$('#bnow').checked;
   $('#bulk').value.split('\n').forEach(line=>{
     const p=line.split(/\s*[;\t=]\s*/);
-    if(p.length>=2&&p[0].trim()&&p[1].trim()){addCard(p[0].trim(),p[1].trim());n++}
+    if(p.length>=2&&p[0].trim()&&p[1].trim()){addCard(p[0].trim(),p[1].trim(),!now);n++}
   });
   save();render();
 }
 function del(id){S.cards=S.cards.filter(c=>c.id!==id);save();render()}
-let delArm=false;
+let delArm=false,ed=null;
+function edit(id){ed=id;render()}
+function editRow(c){
+  return '<div style="padding:10px 0;border-bottom:1px solid var(--bd)"><input id="ees" value="'+esc(c.es)+'" autocapitalize="off" autocorrect="off" spellcheck="false">'+keysRow('ees')
+   +'<input id="ede" value="'+esc(c.de)+'" autocorrect="off" spellcheck="false" style="margin-top:2px">'
+   +'<select id="el" style="margin-top:8px">'+S.lists.map(x=>'<option value="'+x.id+'"'+(c.l===x.id?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'
+   +'<div class="row"><button class="btn" onclick="saveEdit('+c.id+')">Save</button><button class="btn sec" onclick="ed=null;render()">Cancel</button></div></div>';
+}
+function saveEdit(id){
+  const c=S.cards.find(x=>x.id===id),a=$('#ees').value.trim(),b=$('#ede').value.trim();
+  if(!c||!a||!b)return;
+  c.es=a;c.de=b;c.l=+$('#el').value;ed=null;save();render();
+}
 function newList(){
   const n=$('#nl').value.trim();if(!n)return;
   const id=Date.now();S.lists.push({id:id,name:n,lang:$('#nlang').value});S.view=id;delArm=false;save();render();
