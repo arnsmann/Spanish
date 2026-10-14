@@ -182,7 +182,7 @@ function quizView(){
     if(!es)h+=keysRow('ans');
     h+='<button class="btn" onclick="check()">Check</button>';
   }else if(Q.st==='ok'){
-    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents: '+show(answer):'')+'</div><button class="btn" onclick="next()">Next</button>';
+    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents:':'.')+'<div style="font-weight:500;margin-top:4px">'+show(answer)+'</div></div><button class="btn" onclick="next()">Next</button>';
   }else{
     h+='<div class="fb bad">Not quite. Correct answer:<br>'+show(answer)+'</div>'
      +'<div class="mu" style="margin-top:10px">Type it once to continue. This card comes back in 10 minutes.</div>'
