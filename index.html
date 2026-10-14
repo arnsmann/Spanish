@@ -88,17 +88,38 @@ const plain=s=>norm(s).replace(/ß/g,'ss').replace(/ñ/g,'\u0001').normalize('NF
 // A dialect tag looks like {LatAm}. It is shown in italics but never counted when checking what you typed.
 const clean=s=>{const b=s.replace(/\s*\{[^}]*\}/g,'').replace(/\(?\b(?:etw|jdn|jdm)\b\.?(?:\/(?:etw|jdn|jdm)\b\.?)?\)?\s*/g,' ').replace(/\s+/g,' ').trim();const r=b.replace(/\s+(?:hacer\s+)?(?:(?:de|en|a|por)\s+)?(?:algo|alguien)\b/g,'').replace(/\s+(?:a\s+)?alguien\b/g,'').trim();return r||b};
 const show=s=>esc(s).replace(/\{([^}]*)\}/g,'<i class="dia">$1</i>');
+// A card can list several answers separated by " / ". A dialect word ({LatAm}, {Arg}) counts as a variant of the word before it.
+function groups(answer){
+  const g=[];
+  answer.split(/\s*\/\s*/).forEach(a=>{
+    const dia=/\{(?:LatAm|Arg)\}/.test(a),c=clean(a);
+    if(!c)return;
+    if(dia&&g.length)g[g.length-1].push(c);else g.push([c]);
+  });
+  return g;
+}
+function parts(input){const i=clean(input);return [i].concat(i.split(/\s*[\/;,]\s*/).filter(Boolean))}
+function strictOn(gs){return !S.any&&gs.length>1}
+function covers(fn,gs,ps,strict){
+  if(!strict){const alts=gs.flat();if(alts.some(a=>fn(a)===fn(ps[0])))return true;const r=ps.slice(1);return r.length>1&&r.every(p=>alts.some(a=>fn(a)===fn(p)))}
+  return gs.every(g=>g.some(a=>ps.some(p=>fn(a)===fn(p))));
+}
 function grade(input,answer){
-  const alts=clean(answer).split(/\s*[\/;]\s*/);
-  input=clean(input);
-  if(alts.some(a=>norm(a)===norm(input)))return 2;
-  if(alts.some(a=>plain(a)===plain(input)))return 1;
-  const parts=input.split(/\s*[\/;,]\s*/).filter(Boolean);
-  if(parts.length>1){
-    if(parts.every(p=>alts.some(a=>norm(a)===norm(p))))return 2;
-    if(parts.every(p=>alts.some(a=>plain(a)===plain(p))))return 1;
-  }
-  return 0;
+  const gs=groups(answer),ps=parts(input),st=strictOn(gs);
+  return covers(norm,gs,ps,st)?2:covers(plain,gs,ps,st)?1:0;
+}
+// Every answer on a card is typed, but at least one has a small typo
+function nearAll(input,answer){
+  const gs=groups(answer);if(!strictOn(gs))return false;
+  const ps=parts(input).slice(1);
+  const close=(a,p)=>{const x=plain(a),y=plain(p),lim=x.length>=8?2:x.length>=4?1:0;return x===y||(lim>0&&dist(x,y)<=lim)};
+  return gs.every(g=>g.some(a=>ps.some(p=>close(a,p))));
+}
+// Typed some but not all of the answers on a card that needs all of them
+function partial(input,answer){
+  const gs=groups(answer);if(!strictOn(gs))return false;
+  const ps=parts(input);
+  return gs.some(g=>g.some(a=>ps.some(p=>plain(a)===plain(p))))&&!covers(plain,gs,ps,true);
 }
 function items(){
   const out=[];
@@ -156,6 +177,7 @@ function homeView(){
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
    +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:6px">Your cards by phase</div>';
   for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
   return h+'</div>';
@@ -179,7 +201,7 @@ function quizView(){
   let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
   h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>';
   if(Q.st==='ask'){
-    if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">Almost there. Check your spelling and try once more.</div>';
+    if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">'+(Q.hint==='more'?'This card has more than one answer. Add the other one too.':'Almost there. Check your spelling and try once more.')+'</div>';
     h+='<input id="ans" value="'+(Q.hint?esc(Q.val):'')+'" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
     if(!es)h+=keysRow('ans');
     h+='<button class="btn" onclick="check()">Check</button>';
@@ -221,7 +243,9 @@ function check(){
   const it=Q.queue[0],v=$('#ans').value;
   if(!v.trim())return;
   Q.val=v;Q.g=grade(v,answerOf(it));
-  if(!Q.g&&!Q.tried&&near(v,answerOf(it))){Q.tried=true;Q.hint=true;render();return}
+  if(!Q.g&&!Q.tried&&nearAll(v,answerOf(it))){Q.tried=true;Q.hint='spell';render();return}
+  if(!Q.g&&!Q.tried&&partial(v,answerOf(it))){Q.tried=true;Q.hint='more';render();return}
+  if(!Q.g&&!Q.tried&&near(v,answerOf(it))){Q.tried=true;Q.hint='spell';render();return}
   Q.hint=false;
   if(!it.retry){
     const s=it.c[it.d];
