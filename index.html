@@ -5,12 +5,12 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#10201a">
+<meta name="theme-color" content="#222b26">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Vocab">
 <title>Vocab Trainer</title>
 <style>
-:root{--bg:#10201a;--card:#183027;--tx:#e9efe4;--mu:#8fa898;--ac:#d4a24c;--ok:#7bd08f;--bad:#ef8a80;--bd:#27463a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#222b26;--card:rgba(43,54,47,.88);--tx:#e8e6da;--mu:#9ba797;--ac:#a9c8a5;--dia:#e3bf88;--ok:#a3d6a6;--bad:#e8a093;--bd:#3c4a41;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 #app{max-width:520px;margin:0 auto;padding:16px 16px 90px}
@@ -20,7 +20,7 @@ h1{font-size:22px;margin:4px 0 14px}
 button,select,input,textarea{font:inherit;color:inherit}
 input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);font-size:16px}
 textarea{min-height:90px}
-.btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#10201a;font-weight:600;font-size:17px;margin-top:10px}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#1f2a24;font-weight:600;font-size:17px;margin-top:10px}
 .btn.sec{background:transparent;color:var(--ac);border:1px solid var(--ac)}
 .btn:disabled{opacity:.4}
 .row{display:flex;gap:8px;align-items:center}
@@ -37,16 +37,17 @@ textarea{min-height:90px}
 .w{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}
 .w:last-child{border:0}
 .w button{border:0;background:none;color:var(--bad);font-size:20px}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#2b362f;border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
 nav button{flex:1;padding:14px;border:0;background:none;font-weight:600;color:var(--mu)}
 nav button.on{color:var(--ac)}
 .prog{height:6px;background:var(--bd);border-radius:3px;margin-bottom:6px}
 .prog i{display:block;height:100%;background:var(--ac);border-radius:3px}
-.dia{font-style:italic;font-weight:500;color:var(--ac);font-size:.6em;white-space:nowrap}
+.dia{font-style:italic;font-weight:500;color:var(--dia);font-size:.6em;white-space:nowrap}
 .w .dia,.fb .dia{font-size:.85em}
 .w button.e{color:var(--ac)}
 body{background:transparent}
-h1{display:flex;align-items:center;gap:10px;letter-spacing:.2px;min-height:60px;margin-top:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 60' preserveAspectRatio='xMaxYMax meet'%3E%3Cpolygon points='0,60 38,22 56,40 84,8 128,60' fill='%2322483a'/%3E%3Cpolygon points='84,8 76,20 84,17 92,22' fill='%233d6a56'/%3E%3Cpolygon points='60,60 100,30 150,60' fill='%232c5a47'/%3E%3Cg fill='%23356b54'%3E%3Cpolygon points='112,60 120,36 128,60'/%3E%3Cpolygon points='126,60 133,42 140,60'/%3E%3C/g%3E%3C/svg%3E") right bottom/auto 100% no-repeat}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 800' preserveAspectRatio='xMidYMax slice'%3E%3Ccircle cx='318' cy='110' r='38' fill='%232d3a31'/%3E%3Cg fill='%232d3a31'%3E%3Cellipse cx='62' cy='190' rx='15' ry='6' transform='rotate(-28 62 190)'/%3E%3Cellipse cx='96' cy='238' rx='12' ry='5' transform='rotate(18 96 238)'/%3E%3Cellipse cx='344' cy='300' rx='14' ry='6' transform='rotate(-20 344 300)'/%3E%3Cellipse cx='36' cy='400' rx='11' ry='5' transform='rotate(24 36 400)'/%3E%3C/g%3E%3Cpolygon points='0,800 0,560 80,468 140,530 240,410 330,530 400,480 400,800' fill='%2329352d'/%3E%3Cpolygon points='240,410 222,436 240,430 256,440' fill='%2333423a'/%3E%3Cpath d='M0 800V650Q100 590 200 645T400 625V800Z' fill='%232e3b33'/%3E%3Cpath d='M0 800V715Q120 672 220 712T400 695V800Z' fill='%2334433a'/%3E%3Cg fill='%233d4e43'%3E%3Cpolygon points='34,712 48,662 62,712'/%3E%3Cpolygon points='52,716 63,676 74,716'/%3E%3Cpolygon points='318,700 331,650 344,700'/%3E%3Cpolygon points='338,702 348,664 358,702'/%3E%3Cpolygon points='362,700 372,668 382,700'/%3E%3C/g%3E%3Cg%3E%3Cpath d='M150 730c0-12 9-19 20-19s20 7 20 19c0 18-9 40-20 40s-20-22-20-40z' fill='%235b533d'/%3E%3Cellipse cx='170' cy='712' rx='15' ry='5' fill='%232a2a20'/%3E%3Cpath d='M174 712L204 672' stroke='%238a948b' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='205' cy='671' r='4' fill='%238a948b'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat}
+h1{display:flex;align-items:center;gap:10px;letter-spacing:.2px;min-height:44px}
 h1::before{content:'';width:32px;height:32px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M9 14c0-3 3-5 7-5s7 2 7 5c0 6-3 14-7 14s-7-8-7-14z' fill='%23b98a4c'/%3E%3Cpath d='M12 16c1 5 2 9 4 10' stroke='%239a6f38' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='16' cy='10' rx='5.6' ry='2.2' fill='%233b2a17'/%3E%3Cpath d='M17 10L25 2' stroke='%23cfd8d2' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='1.8' r='1.6' fill='%23cfd8d2'/%3E%3C/svg%3E") center/contain no-repeat}
 </style>
 </head>
