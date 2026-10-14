@@ -56,7 +56,7 @@ const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
 const KEY='vocab-trainer-v1';
 let S={cards:[],dir:'both',seeded:false};
 try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.cards)S=r}catch(e){}
-const seed=[['hola','hallo'],['gracias','danke'],['por favor','bitte'],['el perro','der Hund'],['la casa','das Haus'],['el año','das Jahr'],['aprender','lernen'],['la ventana','das Fenster'],['trabajar','arbeiten'],['mañana','morgen / Morgen']];
+const seed=[];
 migrate();
 if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -78,11 +78,11 @@ function migrate(){
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const norm=s=>s.toLowerCase().trim().replace(/\s+/g,' ');
+const norm=s=>s.toLowerCase().replace(/[¿¡?!.,:…]/g,' ').replace(/\s+/g,' ').trim();
 const plain=s=>norm(s).replace(/ñ/g,'\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 // 2 = exact, 1 = only accents differ (still counted correct), 0 = wrong
 // A dialect tag looks like {LatAm}. It is shown in italics but never counted when checking what you typed.
-const clean=s=>s.replace(/\s*\{[^}]*\}/g,'').trim();
+const clean=s=>s.replace(/\s*\{[^}]*\}/g,'').replace(/\(?\b(?:etw|jdn|jdm)\.(?:\/(?:etw|jdn|jdm)\.)?\)?\s*/g,' ').replace(/\s+/g,' ').trim();
 const show=s=>esc(s).replace(/\{([^}]*)\}/g,'<i class="dia">$1</i>');
 function grade(input,answer){
   const alts=clean(answer).split(/\s*[\/;]\s*/);
@@ -136,6 +136,7 @@ function homeView(){
   let h='<h1>Spanish Trainer</h1><div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
+  if(!S.cards.length)h+='<div class="card"><b>No words yet.</b><div class="mu" style="margin:6px 0 10px">Add words on the Words tab, or open the Course tab to load a course.</div><button class="btn" onclick="go(\'words\')">Go to Words</button><button class="btn sec" onclick="go(\'course\')">Go to Course</button></div>';
   const wt=S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length;
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">New words per day</div><select onchange="S.perDay=+this.value;save();render()">'+[3,5,8,10,15,20,9999].map(n=>'<option value="'+n+'"'+(S.perDay===n?' selected':'')+'>'+(n===9999?'All at once':n)+'</option>').join('')+'</select>'
    +'<div class="mu" style="margin-top:10px">Released today: '+(S.rel||0)+'. Waiting in this selection: '+wt+'.</div>'
@@ -304,166 +305,42 @@ function delList(){
   migrate();save();render();
 }
 
-// COURSE: units, each split into sections like chapters of a school book. The app cuts every unit into packs of 20 words.
-// To add more words later, add a section line [name, `Spanish ; German`] to a unit, or a whole new unit.
-const COURSE=[
-{u:'Verbs',s:[
-['Everyday verbs 1',`buscar ; suchen
-encontrar ; finden
-esperar ; warten / hoffen
-conocer ; kennen / kennenlernen
-llevar ; tragen / mitnehmen
-traer ; mitbringen / herbringen
-dejar ; lassen / hinterlassen
-quedarse ; bleiben
-pasar ; passieren / verbringen
-acordarse ; sich erinnern
-olvidar ; vergessen
-empezar ; anfangen / beginnen
-terminar ; beenden / aufhören
-ayudar ; helfen
-necesitar ; brauchen
-preguntar ; fragen
-contestar / responder ; antworten
-volver ; zurückkommen
-salir ; hinausgehen / ausgehen
-pagar ; bezahlen`],
-['Everyday verbs 2',`decir ; sagen
-hablar ; sprechen
-escuchar ; zuhören / hören
-mirar ; ansehen / schauen
-entender ; verstehen
-pensar ; denken
-creer ; glauben
-saber ; wissen
-deber ; müssen / sollen
-parecer ; scheinen / aussehen
-sentir ; fühlen
-vivir ; leben / wohnen
-cambiar ; ändern / wechseln
-abrir ; öffnen
-cerrar ; schließen
-subir ; hinaufgehen / einsteigen
-bajar ; hinuntergehen / aussteigen
-recoger ; abholen / aufheben
-tirar ; werfen / wegwerfen
-conducir / manejar {LatAm} ; Auto fahren`]]},
-{u:'House and garden',s:[
-['Garden and repairs',`la valla / la cerca {LatAm} / el cerco {LatAm} ; der Zaun
-el jardín ; der Garten
-el patio ; der Hof / der Innenhof
-el tejado / el techo {LatAm} ; das Dach
-el techo ; die Decke
-la pared ; die Wand
-el suelo / el piso {LatAm} ; der Boden
-la escalera ; die Treppe
-la cerradura ; das Schloss
-el buzón ; der Briefkasten
-el césped / el pasto {LatAm} ; der Rasen
-la manguera ; der Gartenschlauch
-regar ; gießen / bewässern
-barrer ; fegen
-arreglar / reparar ; reparieren
-pintar ; streichen / malen
-cavar ; graben
-ancho ; breit
-estrecho ; schmal / eng
-roto ; kaputt`],
-['Rooms, furniture and kitchen',`el salón / la sala {LatAm} ; das Wohnzimmer
-el dormitorio / la habitación ; das Schlafzimmer
-el baño ; das Badezimmer
-la cocina ; die Küche
-el pasillo ; der Flur
-el sótano ; der Keller
-el desván / el ático ; der Dachboden
-el balcón ; der Balkon
-el sofá ; das Sofa
-la estantería ; das Regal
-el armario / el clóset {LatAm} ; der Schrank
-la cortina ; der Vorhang
-la alfombra ; der Teppich
-la lámpara ; die Lampe
-la nevera / la heladera {Arg} ; der Kühlschrank
-el horno ; der Backofen
-el fregadero ; die Spüle
-la sartén ; die Pfanne
-la olla ; der Topf
-el cubo de basura / el tacho {Arg} ; der Mülleimer`]]},
-{u:'Adjectives',s:[
-['Opposites',`alto ; hoch
-bajo ; niedrig
-lleno ; voll
-vacío ; leer
-duro ; hart
-blando ; weich
-limpio ; sauber
-sucio ; schmutzig
-mojado ; nass
-seco ; trocken
-caro ; teuer
-barato ; billig / günstig
-rápido ; schnell
-lento ; langsam
-fuerte ; stark
-débil ; schwach
-pesado ; schwer
-ligero / liviano {LatAm} ; leicht
-peligroso ; gefährlich
-seguro ; sicher`]]},
-{u:'City and traffic',s:[
-['Streets and places',`la calle ; die Straße
-la esquina ; die Ecke
-la acera / la vereda {Arg} ; der Bürgersteig
-el semáforo ; die Ampel
-el cruce ; die Kreuzung
-el puente ; die Brücke
-la plaza ; der Platz
-el edificio ; das Gebäude
-el estacionamiento {LatAm} / el aparcamiento ; der Parkplatz
-la parada ; die Haltestelle
-el autobús / el colectivo {Arg} ; der Bus
-el tren ; der Zug
-el billete / el boleto {LatAm} ; die Fahrkarte
-el coche / el carro {LatAm} / el auto {LatAm} ; das Auto
-la gasolinera ; die Tankstelle
-el atasco / el trancón {Col} ; der Stau
-el peatón ; der Fußgänger
-la obra ; die Baustelle
-girar / doblar {LatAm} ; abbiegen
-cruzar ; überqueren`]]},
-{u:'Body and health',s:[
-['Body',`la cabeza ; der Kopf
-el cuello ; der Hals
-el hombro ; die Schulter
-el brazo ; der Arm
-el codo ; der Ellbogen
-la muñeca ; das Handgelenk
-el dedo ; der Finger
-la espalda ; der Rücken
-el pecho ; die Brust
-la cintura ; die Taille
-la rodilla ; das Knie
-el tobillo ; der Knöchel
-el pie ; der Fuß
-la piel ; die Haut
-el músculo ; der Muskel
-el hueso ; der Knochen`],
-['Feeling ill',`la fiebre ; das Fieber
-el dolor ; der Schmerz
-el resfriado / el resfrío {Arg} ; die Erkältung
-doler ; wehtun`]]}
-];
+// The course words are not part of this page. They are pasted in once on the Course tab and stored in this browser only.
+// Format: "# Unit name", then "## Section name", then lines like "Spanish ; German".
+let COURSE=[];
+function parseCourse(t){
+  const us=[];let u=null,sec=null;
+  String(t||'').split('\n').forEach(raw=>{
+    const line=raw.trim();if(!line)return;
+    if(line.startsWith('## ')){if(!u){u={u:'Course',s:[]};us.push(u)}sec=[line.slice(3).trim(),[]];u.s.push(sec);return}
+    if(line.startsWith('# ')){u={u:line.slice(2).trim(),s:[]};us.push(u);sec=null;return}
+    const q=line.split(/\s*;\s*/);
+    if(q.length<2||!q[0]||!q[1])return;
+    if(!u){u={u:'Course',s:[]};us.push(u)}
+    if(!sec){sec=['Words',[]];u.s.push(sec)}
+    sec[1].push(q[0]+' ; '+q[1]);
+  });
+  return us.map(x=>({u:x.u,s:x.s.filter(y=>y[1].length).map(y=>[y[0],y[1].join('\n')])})).filter(x=>x.s.length);
+}
+function loadCourse(){COURSE=parseCourse(S.courseText)}
+function saveCourse(){
+  const t=$('#ctext').value;
+  if(!parseCourse(t).length){$('#cmsg').textContent='No words found. Each line needs the form: Spanish ; German';return}
+  S.courseText=t;loadCourse();save();render();
+}
+function removeCourse(){S.courseText='';loadCourse();save();render()}
 // Cut a unit into packs of 20 words and remember which sections each pack covers.
 function packs(u){
   const w=[];u.s.forEach(x=>x[1].trim().split('\n').forEach(l=>w.push([x[0],l.trim()])));
-  const out=[];
-  for(let i=0;i<w.length;i+=20){const c=w.slice(i,i+20);out.push({lines:c.map(x=>x[1]),secs:[...new Set(c.map(x=>x[0]))]})}
+  // Packs hold about 20 words each. The words are spread evenly, so there is never a tiny leftover pack.
+  const k=Math.max(1,Math.round(w.length/20)),out=[];let a=0;
+  for(let i=0;i<k;i++){const b=Math.round((i+1)*w.length/k),c=w.slice(a,b);a=b;out.push({lines:c.map(x=>x[1]),secs:[...new Set(c.map(x=>x[0]))]})}
   return out;
 }
 function packDone(pid){return S.packs[pid]&&S.lists.some(l=>l.id===S.packs[pid])}
 // Adding a pack creates a list. Its words wait in the queue. Words you already have are skipped.
 function addPack(ui,pi){
-  const u=COURSE[ui],p=packs(u)[pi],pid=u.u+' '+(pi+1);
+  const u=COURSE[ui],p=packs(u)[pi],pid=u.u+' Pack '+(pi+1);
   if(packDone(pid))return;
   const have=new Set(S.cards.map(c=>clean(c.es).toLowerCase()));
   const id=Date.now()+ui*50+pi,old=S.view;
@@ -472,18 +349,22 @@ function addPack(ui,pi){
   S.view=old;S.packs[pid]=id;save();render();
 }
 function nextPack(){
-  for(let ui=0;ui<COURSE.length;ui++){const ps=packs(COURSE[ui]);for(let pi=0;pi<ps.length;pi++){if(!packDone(COURSE[ui].u+' '+(pi+1))){addPack(ui,pi);return}}}
+  for(let ui=0;ui<COURSE.length;ui++){const ps=packs(COURSE[ui]);for(let pi=0;pi<ps.length;pi++){if(!packDone(COURSE[ui].u+' Pack '+(pi+1))){addPack(ui,pi);return}}}
 }
 function courseView(){
-  let h='<h1>Course</h1><div class="mu" style="margin-bottom:12px">Packs of 20 words in school book order. Tap Add and the pack becomes a list. Its words wait in the queue and arrive at your daily pace.</div><button class="btn" style="margin:0 0 14px" onclick="nextPack()">Add the next pack</button>';
+  const box='<textarea id="ctext" style="min-height:150px" placeholder="Paste the course text here" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>';
+  if(!COURSE.length)return '<h1>Course</h1><div class="card"><div class="mu" style="margin-bottom:10px">The course words are not part of this page. Paste your course text here once. It stays in this browser on this device.</div>'+box+'<button class="btn" onclick="saveCourse()">Save course text</button><div id="cmsg" class="mu" style="margin-top:8px"></div></div>';
+  let n=0,pk=0;COURSE.forEach(u=>{const ps=packs(u);pk+=ps.length;ps.forEach(p=>n+=p.lines.length)});
+  let h='<h1>Course</h1><div class="mu" style="margin-bottom:12px">'+n+' words in '+pk+' packs of about 20 words. Tap Add and the pack becomes a list. Its words wait in the queue and arrive at your daily pace.</div><button class="btn" style="margin:0 0 14px" onclick="nextPack()">Add the next pack</button>';
   COURSE.forEach((u,ui)=>{
     h+='<div class="card"><b>'+esc(u.u)+'</b>';
     packs(u).forEach((p,pi)=>{
-      const done=packDone(u.u+' '+(pi+1));
+      const done=packDone(u.u+' Pack '+(pi+1));
       h+='<div class="w"><div>Pack '+(pi+1)+'<div class="mu">'+esc(p.secs.join(', '))+' · '+p.lines.length+' words</div></div>'+(done?'<span class="mu">Added</span>':'<button class="e" style="font-size:16px" onclick="addPack('+ui+','+pi+')">Add</button>')+'</div>';
     });
     h+='</div>';
   });
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Replace the course text. Lists you already added stay as they are.</div>'+box+'<button class="btn sec" onclick="saveCourse()">Replace course text</button><button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="removeCourse()">Remove course text</button><div id="cmsg" class="mu" style="margin-top:8px"></div></div>';
   return h;
 }
 function exp(){
@@ -494,9 +375,10 @@ function imp(){
   try{
     const r=JSON.parse($('#bk').value);
     if(!r||!Array.isArray(r.cards))throw 0;
-    S=r;S.seeded=true;migrate();save();render();
+    const keep=S.courseText;S=r;if(!S.courseText&&keep)S.courseText=keep;S.seeded=true;migrate();loadCourse();save();render();
   }catch(e){$('#bkmsg').textContent='That text is not a valid backup.'}
 }
+loadCourse();
 render();
 </script>
 </body>
