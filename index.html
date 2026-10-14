@@ -49,7 +49,7 @@ nav button.on{color:var(--ac)}
 </head>
 <body>
 <div id="app"></div>
-<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button></nav>
+<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button><button id="t-course" onclick="go('course')">Course</button></nav>
 <script>
 // Review gaps for each phase. A wrong answer sends the card back to phase 1 (10 minutes).
 const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
@@ -71,6 +71,7 @@ function migrate(){
   S.cards.forEach(c=>{if(!S.lists.some(l=>l.id===c.l))c.l=S.lists[0].id});
   S.lists.forEach(l=>{if(l.lang!=='en')l.lang='de'});
   if(!S.perDay)S.perDay=5;
+  if(!S.packs)S.packs={};
   if(!S.lists.some(l=>l.id===S.view))S.view=S.lists[0].id;
   if(S.sel!=='all'&&!S.lists.some(l=>l.id===S.sel))S.sel='all';
 }
@@ -119,7 +120,8 @@ function go(t){tab=t;Q=null;delArm=false;ed=null;render()}
 function render(){
   $('#t-learn').className=tab==='learn'?'on':'';
   $('#t-words').className=tab==='words'?'on':'';
-  $('#app').innerHTML=tab==='words'?wordsView():(Q?quizView():homeView());
+  $('#t-course').className=tab==='course'?'on':'';
+  $('#app').innerHTML=tab==='words'?wordsView():tab==='course'?courseView():(Q?quizView():homeView());
   const f=$('#ans')||$('#re');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
 }
 
@@ -300,6 +302,189 @@ function delList(){
   S.cards=S.cards.filter(c=>c.l!==S.view);
   if(S.lists.length>1)S.lists=S.lists.filter(x=>x.id!==S.view);
   migrate();save();render();
+}
+
+// COURSE: units, each split into sections like chapters of a school book. The app cuts every unit into packs of 20 words.
+// To add more words later, add a section line [name, `Spanish ; German`] to a unit, or a whole new unit.
+const COURSE=[
+{u:'Verbs',s:[
+['Everyday verbs 1',`buscar ; suchen
+encontrar ; finden
+esperar ; warten / hoffen
+conocer ; kennen / kennenlernen
+llevar ; tragen / mitnehmen
+traer ; mitbringen / herbringen
+dejar ; lassen / hinterlassen
+quedarse ; bleiben
+pasar ; passieren / verbringen
+acordarse ; sich erinnern
+olvidar ; vergessen
+empezar ; anfangen / beginnen
+terminar ; beenden / aufhören
+ayudar ; helfen
+necesitar ; brauchen
+preguntar ; fragen
+contestar / responder ; antworten
+volver ; zurückkommen
+salir ; hinausgehen / ausgehen
+pagar ; bezahlen`],
+['Everyday verbs 2',`decir ; sagen
+hablar ; sprechen
+escuchar ; zuhören / hören
+mirar ; ansehen / schauen
+entender ; verstehen
+pensar ; denken
+creer ; glauben
+saber ; wissen
+deber ; müssen / sollen
+parecer ; scheinen / aussehen
+sentir ; fühlen
+vivir ; leben / wohnen
+cambiar ; ändern / wechseln
+abrir ; öffnen
+cerrar ; schließen
+subir ; hinaufgehen / einsteigen
+bajar ; hinuntergehen / aussteigen
+recoger ; abholen / aufheben
+tirar ; werfen / wegwerfen
+conducir / manejar {LatAm} ; Auto fahren`]]},
+{u:'House and garden',s:[
+['Garden and repairs',`la valla / la cerca {LatAm} / el cerco {LatAm} ; der Zaun
+el jardín ; der Garten
+el patio ; der Hof / der Innenhof
+el tejado / el techo {LatAm} ; das Dach
+el techo ; die Decke
+la pared ; die Wand
+el suelo / el piso {LatAm} ; der Boden
+la escalera ; die Treppe
+la cerradura ; das Schloss
+el buzón ; der Briefkasten
+el césped / el pasto {LatAm} ; der Rasen
+la manguera ; der Gartenschlauch
+regar ; gießen / bewässern
+barrer ; fegen
+arreglar / reparar ; reparieren
+pintar ; streichen / malen
+cavar ; graben
+ancho ; breit
+estrecho ; schmal / eng
+roto ; kaputt`],
+['Rooms, furniture and kitchen',`el salón / la sala {LatAm} ; das Wohnzimmer
+el dormitorio / la habitación ; das Schlafzimmer
+el baño ; das Badezimmer
+la cocina ; die Küche
+el pasillo ; der Flur
+el sótano ; der Keller
+el desván / el ático ; der Dachboden
+el balcón ; der Balkon
+el sofá ; das Sofa
+la estantería ; das Regal
+el armario / el clóset {LatAm} ; der Schrank
+la cortina ; der Vorhang
+la alfombra ; der Teppich
+la lámpara ; die Lampe
+la nevera / la heladera {Arg} ; der Kühlschrank
+el horno ; der Backofen
+el fregadero ; die Spüle
+la sartén ; die Pfanne
+la olla ; der Topf
+el cubo de basura / el tacho {Arg} ; der Mülleimer`]]},
+{u:'Adjectives',s:[
+['Opposites',`alto ; hoch
+bajo ; niedrig
+lleno ; voll
+vacío ; leer
+duro ; hart
+blando ; weich
+limpio ; sauber
+sucio ; schmutzig
+mojado ; nass
+seco ; trocken
+caro ; teuer
+barato ; billig / günstig
+rápido ; schnell
+lento ; langsam
+fuerte ; stark
+débil ; schwach
+pesado ; schwer
+ligero / liviano {LatAm} ; leicht
+peligroso ; gefährlich
+seguro ; sicher`]]},
+{u:'City and traffic',s:[
+['Streets and places',`la calle ; die Straße
+la esquina ; die Ecke
+la acera / la vereda {Arg} ; der Bürgersteig
+el semáforo ; die Ampel
+el cruce ; die Kreuzung
+el puente ; die Brücke
+la plaza ; der Platz
+el edificio ; das Gebäude
+el estacionamiento {LatAm} / el aparcamiento ; der Parkplatz
+la parada ; die Haltestelle
+el autobús / el colectivo {Arg} ; der Bus
+el tren ; der Zug
+el billete / el boleto {LatAm} ; die Fahrkarte
+el coche / el carro {LatAm} / el auto {LatAm} ; das Auto
+la gasolinera ; die Tankstelle
+el atasco / el trancón {Col} ; der Stau
+el peatón ; der Fußgänger
+la obra ; die Baustelle
+girar / doblar {LatAm} ; abbiegen
+cruzar ; überqueren`]]},
+{u:'Body and health',s:[
+['Body',`la cabeza ; der Kopf
+el cuello ; der Hals
+el hombro ; die Schulter
+el brazo ; der Arm
+el codo ; der Ellbogen
+la muñeca ; das Handgelenk
+el dedo ; der Finger
+la espalda ; der Rücken
+el pecho ; die Brust
+la cintura ; die Taille
+la rodilla ; das Knie
+el tobillo ; der Knöchel
+el pie ; der Fuß
+la piel ; die Haut
+el músculo ; der Muskel
+el hueso ; der Knochen`],
+['Feeling ill',`la fiebre ; das Fieber
+el dolor ; der Schmerz
+el resfriado / el resfrío {Arg} ; die Erkältung
+doler ; wehtun`]]}
+];
+// Cut a unit into packs of 20 words and remember which sections each pack covers.
+function packs(u){
+  const w=[];u.s.forEach(x=>x[1].trim().split('\n').forEach(l=>w.push([x[0],l.trim()])));
+  const out=[];
+  for(let i=0;i<w.length;i+=20){const c=w.slice(i,i+20);out.push({lines:c.map(x=>x[1]),secs:[...new Set(c.map(x=>x[0]))]})}
+  return out;
+}
+function packDone(pid){return S.packs[pid]&&S.lists.some(l=>l.id===S.packs[pid])}
+// Adding a pack creates a list. Its words wait in the queue. Words you already have are skipped.
+function addPack(ui,pi){
+  const u=COURSE[ui],p=packs(u)[pi],pid=u.u+' '+(pi+1);
+  if(packDone(pid))return;
+  const have=new Set(S.cards.map(c=>clean(c.es).toLowerCase()));
+  const id=Date.now()+ui*50+pi,old=S.view;
+  S.lists.push({id:id,name:pid,lang:'de'});S.view=id;
+  p.lines.forEach(l=>{const q=l.split(/\s*;\s*/);if(q.length>=2&&!have.has(clean(q[0]).toLowerCase()))addCard(q[0].trim(),q[1].trim(),true)});
+  S.view=old;S.packs[pid]=id;save();render();
+}
+function nextPack(){
+  for(let ui=0;ui<COURSE.length;ui++){const ps=packs(COURSE[ui]);for(let pi=0;pi<ps.length;pi++){if(!packDone(COURSE[ui].u+' '+(pi+1))){addPack(ui,pi);return}}}
+}
+function courseView(){
+  let h='<h1>Course</h1><div class="mu" style="margin-bottom:12px">Packs of 20 words in school book order. Tap Add and the pack becomes a list. Its words wait in the queue and arrive at your daily pace.</div><button class="btn" style="margin:0 0 14px" onclick="nextPack()">Add the next pack</button>';
+  COURSE.forEach((u,ui)=>{
+    h+='<div class="card"><b>'+esc(u.u)+'</b>';
+    packs(u).forEach((p,pi)=>{
+      const done=packDone(u.u+' '+(pi+1));
+      h+='<div class="w"><div>Pack '+(pi+1)+'<div class="mu">'+esc(p.secs.join(', '))+' · '+p.lines.length+' words</div></div>'+(done?'<span class="mu">Added</span>':'<button class="e" style="font-size:16px" onclick="addPack('+ui+','+pi+')">Add</button>')+'</div>';
+    });
+    h+='</div>';
+  });
+  return h;
 }
 function exp(){
   const t=$('#bk');t.value=JSON.stringify(S);t.select();
