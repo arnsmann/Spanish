@@ -122,6 +122,8 @@ function daily(){
   if(n>0){const k=releaseNew(n);if(k){S.rel=(S.rel||0)+k;ch=true}}
   if(ch)save();
 }
+let moreN=10;
+function moreGo(){const v=Math.floor(+$('#mn').value);if(!(v>0))return;moreN=v;more(v)}
 function more(n){S.rel=(S.rel||0)+releaseNew(n);save();render()}
 function rel(ms){const m=Math.max(1,Math.round(ms/MIN));if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+' h';return Math.round(h/24)+' days'}
 
@@ -150,7 +152,7 @@ function homeView(){
   const wt=S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length;
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">New words per day</div><select onchange="S.perDay=+this.value;save();render()">'+[3,5,8,10,15,20,9999].map(n=>'<option value="'+n+'"'+(S.perDay===n?' selected':'')+'>'+(n===9999?'All at once':n)+'</option>').join('')+'</select>'
    +'<div class="mu" style="margin-top:10px">Released today: '+(S.rel||0)+'. Waiting in this selection: '+wt+'.</div>'
-   +(wt?'<button class="btn sec" onclick="more(5)">Release 5 more now</button><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'')+'</div>';
+   +(wt?'<div class="row" style="margin-top:10px"><input id="mn" type="number" inputmode="numeric" min="1" value="'+moreN+'" style="width:90px;flex:none;text-align:center" oninput="moreN=Math.max(1,Math.floor(+this.value)||1)"><button class="btn sec" style="margin:0" onclick="moreGo()">Release this many now</button></div><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'')+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
    +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
