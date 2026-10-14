@@ -60,7 +60,7 @@ h1::before{content:'';width:32px;height:32px;flex:none;background:url("data:imag
 </head>
 <body>
 <div id="app"></div>
-<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button><button id="t-course" onclick="go('course')">Course</button></nav>
+<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button><button id="t-course" onclick="go('course')">Course</button><button id="t-settings" onclick="go('settings')">Settings</button></nav>
 <script>
 // Review gaps for each phase. A wrong answer sends the card back to phase 1 (10 minutes).
 const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
@@ -127,7 +127,7 @@ function showVoices(){
   el.innerHTML=vs.length?'Spanish voices found ('+vs.length+'):<br>'+vs.map(v=>esc(v.name+' ('+v.lang+')')).join('<br>'):'No Spanish voices found. '+(VOICES.length?'The app sees '+VOICES.length+' voices in other languages.':'The app sees no voices at all. Close the page completely and open it again.');
 }
 function speechCard(){
-  return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>'<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+'</option>').join('')+'</select>'
+  return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>{const p=pickVoice(k);return '<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+(p&&p.exact?'':(p?' (uses '+esc(p.v.name)+')':''))+'</option>'}).join('')+'</select>'
    +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the Spanish word aloud after each answer</span></label>'
    +'<button class="btn sec" onclick="speakText(\'Hola, ¿cómo estás? Me gusta el mate.\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div><button class="btn sec" onclick="showVoices()">Show the voices this app can see</button><div class="mu" id="vlist" style="margin-top:8px"></div></div>';
 }
@@ -136,6 +136,16 @@ const TK='vocab-trainer-token',SK='vocab-trainer-sync',GF='vocab-trainer.json';
 let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},booting=false,pushT=null;
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
+// The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
+const BUILD='202610141643';
+let UPD=false;
+async function checkUpdate(){
+  try{
+    const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'reload'});
+    const m=(await r.text()).match(/const BUILD='(\d+)'/);
+    if(m&&m[1]!==BUILD){UPD=true;if(!Q&&ed===null)render()}
+  }catch(e){}
+}
 const seed=[];
 migrate();
 if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
@@ -235,7 +245,8 @@ function render(){
   $('#t-learn').className=tab==='learn'?'on':'';
   $('#t-words').className=tab==='words'?'on':'';
   $('#t-course').className=tab==='course'?'on':'';
-  $('#app').innerHTML=tab==='words'?wordsView():tab==='course'?courseView():(Q?quizView():homeView());
+  $('#t-settings').className=tab==='settings'?'on':'';
+  $('#app').innerHTML=tab==='words'?wordsView():tab==='course'?courseView():tab==='settings'?settingsView():(Q?quizView():homeView());
   const f=$('#ans')||$('#re');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
 }
 
@@ -361,7 +372,7 @@ function homeView(){
   const mx=Math.max(1,...cnt);
   const future=it.map(x=>x.c[x.d].due).filter(d=>d>now);
   const next=future.length?Math.min(...future)-now:0;
-  let h='<h1>Spanish Trainer</h1>'+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
+  let h='<h1>Spanish Trainer</h1>'+(UPD?'<div class="card"><b>A new version is available</b><div class="mu" style="margin:6px 0 10px">Your progress stays as it is.</div><button class="btn" onclick="location.reload()">Update now</button></div>':'')+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
   h+=forecastCard(it,now,S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length);
@@ -370,17 +381,28 @@ function homeView(){
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">New words per day</div><select onchange="S.perDay=+this.value;save();render()">'+[3,5,8,10,15,20,9999].map(n=>'<option value="'+n+'"'+(S.perDay===n?' selected':'')+'>'+(n===9999?'All at once':n)+'</option>').join('')+'</select>'
    +'<div class="mu" style="margin-top:10px">Released today: '+(S.rel||0)+'. Waiting in this selection: '+wt+'.</div>'
    +(wt?'<div class="row" style="margin-top:10px"><input id="mn" type="number" inputmode="numeric" min="1" value="'+moreN+'" style="width:90px;flex:none;text-align:center" oninput="moreN=Math.max(1,Math.floor(+this.value)||1)"><button class="btn sec" style="margin:0" onclick="moreGo()">Release this many now</button></div><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'')+'</div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
-   +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:6px">Your cards by phase</div>';
 
   for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
   h+='</div>';
+  return h;
+}
+function backupCard(){
+  let h='';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
+   +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
+  return h;
+}
+function settingsView(){
+  let h='<h1>Settings</h1>'+(SY.conf?conflictCard():'')+(UPD?'<div class="card"><b>A new version is available</b><button class="btn" onclick="location.reload()">Update now</button></div>':'');
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
+   +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
   h+=speechCard();
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
   h+=syncCard();
+  h+=backupCard();
   return h;
 }
 
@@ -501,8 +523,6 @@ function wordsView(){
    +'<button class="btn" onclick="add()">Add word</button></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation. Imported words are released a few per day (see the Learn tab), unless you tick the box below.</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="bnow" type="checkbox" style="width:auto">Make all of them available right away</label><button class="btn sec" onclick="bulk()">Import lines</button></div>';
   h+='<div class="card">'+(l.length?l.map(c=>c.id===ed?editRow(c):'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+(c.w?' · waiting':'')+'</div></div><div style="white-space:nowrap">'+spkBtn('speakId('+c.id+')')+'<button class="e" onclick="edit('+c.id+')">✎</button><button onclick="del('+c.id+')">✕</button></div></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
-   +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
   return h;
 }
 function add(){
@@ -635,6 +655,7 @@ document.addEventListener('visibilitychange',()=>{
   else if((S.mod||0)>SYN.base)syncNow(false);
 });
 loadCourse();
+checkUpdate();
 if(SYN.tok&&SYN.gid){
   booting=true;render();
   Promise.race([syncNow(false),new Promise(r=>setTimeout(r,6000))]).then(()=>{booting=false;render()});
