@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vocab">
+<title>Vocab Trainer</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--ac:#c2410c;--ok:#15803d;--bad:#b91c1c;--bd:#e2e0d8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--card:#222220;--tx:#f0efea;--mu:#9a9a93;--ac:#fb923c;--ok:#4ade80;--bad:#f87171;--bd:#34342f}}
+:root[data-theme="dark"]{--bg:#161615;--card:#222220;--tx:#f0efea;--mu:#9a9a93;--ac:#fb923c;--ok:#4ade80;--bad:#f87171;--bd:#34342f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+#app{max-width:520px;margin:0 auto;padding:16px 16px 90px}
+h1{font-size:22px;margin:4px 0 14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+.mu{color:var(--mu);font-size:14px}
+button,select,input,textarea{font:inherit;color:inherit}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);font-size:16px}
+textarea{min-height:90px}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#fff;font-weight:600;font-size:17px;margin-top:10px}
+.btn.sec{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:8px;align-items:center}
+.big{font-size:34px;font-weight:700;text-align:center;margin:16px 0 8px;word-break:break-word}
+.lab{text-align:center}
+.keys{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;justify-content:center}
+.keys button{min-width:38px;padding:9px 0;border-radius:8px;border:1px solid var(--bd);background:var(--card);font-size:18px}
+.fb{padding:12px;border-radius:10px;margin-top:12px;font-weight:600}
+.fb.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.fb.bad{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+.bar i{display:block;height:10px;border-radius:5px;background:var(--ac);min-width:3px}
+.bar span:first-child{width:62px;color:var(--mu)}
+.w{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.w:last-child{border:0}
+.w button{border:0;background:none;color:var(--bad);font-size:20px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;padding:14px;border:0;background:none;font-weight:600;color:var(--mu)}
+nav button.on{color:var(--ac)}
+.prog{height:6px;background:var(--bd);border-radius:3px;margin-bottom:6px}
+.prog i{display:block;height:100%;background:var(--ac);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button></nav>
+<script>
+// Review gaps for each phase. A wrong answer sends the card back to phase 1 (10 minutes).
+const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
+const KEY='vocab-trainer-v1';
+let S={cards:[],dir:'both',seeded:false};
+try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.cards)S=r}catch(e){}
+const seed=[['hola','hallo'],['gracias','danke'],['por favor','bitte'],['el perro','der Hund'],['la casa','das Haus'],['el año','das Jahr'],['aprender','lernen'],['la ventana','das Fenster'],['trabajar','arbeiten'],['mañana','morgen / Morgen']];
+migrate();
+if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function addCard(es,de){S.cards.push({id:Date.now()+Math.floor(Math.random()*1e6),l:S.view,es:es,de:de,sd:{p:1,due:0},ds:{p:1,due:0}})}
+// Makes sure every card belongs to a list and the selected lists exist (also upgrades older saved data).
+function migrate(){
+  if(!S.lists||!S.lists.length)S.lists=[{id:1,name:'My words'}];
+  S.cards.forEach(c=>{if(!S.lists.some(l=>l.id===c.l))c.l=S.lists[0].id});
+  S.lists.forEach(l=>{if(l.lang!=='en')l.lang='de'});
+  if(!S.lists.some(l=>l.id===S.view))S.view=S.lists[0].id;
+  if(S.sel!=='all'&&!S.lists.some(l=>l.id===S.sel))S.sel='all';
+}
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const norm=s=>s.toLowerCase().trim().replace(/\s+/g,' ');
+const plain=s=>norm(s).replace(/ñ/g,'\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+// 2 = exact, 1 = only accents differ (still counted correct), 0 = wrong
+function grade(input,answer){
+  const alts=answer.split(/\s*[\/;]\s*/);
+  if(alts.some(a=>norm(a)===norm(input)))return 2;
+  if(alts.some(a=>plain(a)===plain(input)))return 1;
+  return 0;
+}
+function items(){
+  const out=[];
+  S.cards.filter(c=>S.sel==='all'||c.l===S.sel).forEach(c=>['sd','ds'].forEach(d=>{if(S.dir==='both'||S.dir===d)out.push({c:c,d:d})}));
+  return out;
+}
+function rel(ms){const m=Math.max(1,Math.round(ms/MIN));if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+' h';return Math.round(h/24)+' days'}
+
+let tab='learn', Q=null;
+function go(t){tab=t;Q=null;delArm=false;render()}
+function render(){
+  $('#t-learn').className=tab==='learn'?'on':'';
+  $('#t-words').className=tab==='words'?'on':'';
+  $('#app').innerHTML=tab==='words'?wordsView():(Q?quizView():homeView());
+  const f=$('#ans')||$('#re');if(f)f.focus();
+}
+
+function homeView(){
+  const it=items(),now=Date.now();
+  const due=it.filter(x=>x.c[x.d].due<=now).length;
+  const cnt=[0,0,0,0,0,0,0];it.forEach(x=>cnt[x.c[x.d].p]++);
+  const mx=Math.max(1,...cnt);
+  const future=it.map(x=>x.c[x.d].due).filter(d=>d>now);
+  const next=future.length?Math.min(...future)-now:0;
+  let h='<h1>Spanish Trainer</h1><div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
+  if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
+  h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
+   +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:6px">Your cards by phase</div>';
+  for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
+  return h+'</div>';
+}
+
+function start(){
+  const now=Date.now();
+  const l=items().filter(x=>x.c[x.d].due<=now);
+  for(let i=l.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[l[i],l[j]]=[l[j],l[i]]}
+  const q=l.slice(0,20).map(x=>({c:x.c,d:x.d,retry:false}));
+  Q={queue:q,total:q.length,done:0,right:0,st:'ask',g:0,val:''};
+  render();
+}
+const KEYS='á é í ó ú ü ñ ¿ ¡'.split(' ');
+function quizView(){
+  if(!Q.queue.length){
+    return '<h1>Session finished</h1><div class="card"><div class="big">'+Q.right+' / '+Q.total+'</div><div class="mu lab">answered correctly on the first try</div><button class="btn" onclick="go(\'learn\')">Back</button></div>';
+  }
+  const it=Q.queue[0],es=it.d==='sd';
+  const prompt=es?it.c.es:it.c.de,answer=es?it.c.de:it.c.es;
+  let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
+  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+esc(prompt)+'</div>';
+  if(Q.st==='ask'){
+    h+='<input id="ans" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
+    if(!es)h+=keysRow('ans');
+    h+='<button class="btn" onclick="check()">Check</button>';
+  }else if(Q.st==='ok'){
+    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents: '+esc(answer):'')+'</div><button class="btn" onclick="next()">Next</button>';
+  }else{
+    h+='<div class="fb bad">Not quite. Correct answer:<br>'+esc(answer)+'</div>'
+     +'<div class="mu" style="margin-top:10px">Type it once to continue. This card comes back in 10 minutes.</div>'
+     +'<input id="re" style="margin-top:8px" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">'
+     +(!es?keysRow('re'):'')+'<button class="btn" onclick="confirmRe()">Continue</button><button class="btn sec" onclick="override()">No, I was right</button>';
+  }
+  return h+'</div>';
+}
+function keysRow(id){
+  return '<div class="keys">'+KEYS.map(k=>'<button onpointerdown="ins(event,\''+id+'\',\''+k+'\')">'+k+'</button>').join('')+'</div>';
+}
+function ins(e,id,ch){
+  e.preventDefault();
+  const el=$('#'+id);if(!el)return;
+  const a=el.selectionStart,b=el.selectionEnd;
+  el.value=el.value.slice(0,a)+ch+el.value.slice(b);
+  el.setSelectionRange(a+1,a+1);el.focus();
+}
+function answerOf(it){return it.d==='sd'?it.c.de:it.c.es}
+function check(){
+  const it=Q.queue[0],v=$('#ans').value;
+  if(!v.trim())return;
+  Q.val=v;Q.g=grade(v,answerOf(it));
+  if(!it.retry){
+    const s=it.c[it.d];
+    Q.prev={p:s.p,due:s.due};
+    if(Q.g){
+      promote(s);
+      Q.right++;
+    }else{s.p=1;s.due=Date.now()+INT[1]}
+    save();
+  }
+  Q.st=Q.g?'ok':'bad';render();
+}
+function promote(s){if(s.p<6){s.p++;s.due=Date.now()+INT[s.p]}else s.due=Date.now()+90*DAY}
+// Every list has its own second language. The card text field is still called de, but it holds that language.
+const LN={de:'Deutsch',en:'English'};
+function curList(){return S.lists.find(x=>x.id===S.view)}
+function lname(c){const l=S.lists.find(x=>x.id===c.l);return LN[l&&l.lang||'de']}
+function optLang(v){return Object.keys(LN).map(k=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+LN[k]+'</option>').join('')}
+function setLang(v){curList().lang=v;save();render()}
+// Undo the wrong mark: restore the card's old phase, then count the answer as correct.
+function override(){
+  const it=Q.queue[0];
+  if(!it.retry&&Q.prev){const s=it.c[it.d];s.p=Q.prev.p;s.due=Q.prev.due;promote(s);Q.right++;save()}
+  Q.st='ok';next();
+}
+function confirmRe(){
+  const it=Q.queue[0],v=$('#re').value;
+  if(grade(v,answerOf(it)))next();
+  else{$('#re').value='';$('#re').placeholder='Look again and type it exactly';$('#re').focus()}
+}
+function next(){
+  const it=Q.queue.shift();
+  if(Q.st==='bad'&&!it.retry)Q.queue.splice(Math.min(4,Q.queue.length),0,{c:it.c,d:it.d,retry:true});
+  if(!(Q.st==='bad'&&!it.retry))Q.done++;
+  Q.st='ask';render();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||tab!=='learn'||!Q||!Q.queue.length)return;
+  if(Q.st==='ask')check();else if(Q.st==='ok')next();else confirmRe();
+});
+
+function wordsView(){
+  const l=S.cards.filter(c=>c.l===S.view).reverse();
+  let h='<h1>Words</h1><div class="card"><div class="mu" style="margin-bottom:8px">Word list. New words are added to this list.</div><select onchange="S.view=+this.value;delArm=false;save();render()">'+S.lists.map(x=>'<option value="'+x.id+'"'+(S.view===x.id?' selected':'')+'>'+esc(x.name)+' ('+x.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===x.id).length+')</option>').join('')+'</select>'
+   +'<div class="mu" style="margin-top:12px;margin-bottom:6px">Second language of this list</div><select onchange="setLang(this.value)">'+optLang(curList().lang)+'</select>'
+   +'<input id="nl" style="margin-top:14px" placeholder="New list name" autocorrect="off"><div class="row" style="margin-top:8px"><select id="nlang">'+optLang(curList().lang)+'</select><button class="btn sec" style="width:auto;margin-top:0;padding:12px 16px;white-space:nowrap" onclick="newList()">Create</button></div>'
+   +'<button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="delList()">'+(delArm?'Tap again to delete the list and its words':(S.lists.length>1?'Delete this list':'Empty this list'))+'</button></div>'
+   +'<div class="card"><input id="nes" placeholder="Español" autocapitalize="off" autocorrect="off" spellcheck="false">'
+   +keysRow('nes')+'<input id="nde" placeholder="'+LN[curList().lang]+' (alternatives with a slash)" autocorrect="off" spellcheck="false" style="margin-top:2px">'
+   +'<button class="btn" onclick="add()">Add word</button></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><button class="btn sec" onclick="bulk()">Import lines</button></div>';
+  h+='<div class="card">'+(l.length?l.map(c=>'<div class="w"><div><b>'+esc(c.es)+'</b><div class="mu">'+esc(c.de)+'</div></div><button onclick="del('+c.id+')">✕</button></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
+   +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
+  return h;
+}
+function add(){
+  const a=$('#nes').value.trim(),b=$('#nde').value.trim();
+  if(!a||!b)return;
+  addCard(a,b);save();render();$('#nes').focus();
+}
+function bulk(){
+  let n=0;
+  $('#bulk').value.split('\n').forEach(line=>{
+    const p=line.split(/\s*[;\t=]\s*/);
+    if(p.length>=2&&p[0].trim()&&p[1].trim()){addCard(p[0].trim(),p[1].trim());n++}
+  });
+  save();render();
+}
+function del(id){S.cards=S.cards.filter(c=>c.id!==id);save();render()}
+let delArm=false;
+function newList(){
+  const n=$('#nl').value.trim();if(!n)return;
+  const id=Date.now();S.lists.push({id:id,name:n,lang:$('#nlang').value});S.view=id;delArm=false;save();render();
+}
+function delList(){
+  if(!delArm){delArm=true;render();return}
+  delArm=false;
+  S.cards=S.cards.filter(c=>c.l!==S.view);
+  if(S.lists.length>1)S.lists=S.lists.filter(x=>x.id!==S.view);
+  migrate();save();render();
+}
+function exp(){
+  const t=$('#bk');t.value=JSON.stringify(S);t.select();
+  try{navigator.clipboard.writeText(t.value);$('#bkmsg').textContent='Copied. Paste it into Notes to keep it safe.'}catch(e){$('#bkmsg').textContent='Select all and copy this text.'}
+}
+function imp(){
+  try{
+    const r=JSON.parse($('#bk').value);
+    if(!r||!Array.isArray(r.cards))throw 0;
+    S=r;S.seeded=true;migrate();save();render();
+  }catch(e){$('#bkmsg').textContent='That text is not a valid backup.'}
+}
+render();
+</script>
+</body>
+</html>
