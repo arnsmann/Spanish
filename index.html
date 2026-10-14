@@ -92,7 +92,7 @@ function voiceStatus(){
   const acc=S.accent||'es-ES',p=pickVoice(acc);
   if(!p)return 'No Spanish voice found on this device yet.';
   if(p.exact)return 'Voice: '+p.v.name+' ('+p.v.lang+')';
-  return 'No '+ACC[acc].n+' voice is installed, so it uses '+p.v.name+' ('+p.v.lang+'). On an iPhone you can add one under Settings, Accessibility, Spoken Content, Voices, Spanish.';
+  return 'No '+ACC[acc].n+' voice is installed, so it uses '+p.v.name+' ('+p.v.lang+'). On an iPhone you can add one under Settings, Accessibility, Read & Speak (Spoken Content on older iOS), Voices, Spanish.';
 }
 // Which spelling to read: Spain skips Latin American variants, Argentina prefers {Arg}, Colombia prefers {LatAm}.
 function pickAlt(es,acc){
@@ -110,15 +110,26 @@ function speakText(es,raw){
   const u=new SpeechSynthesisUtterance(t),p=pickVoice(acc);
   if(p){u.voice=p.v;u.lang=p.v.lang}else u.lang=acc;
   u.rate=.85;
-  try{speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
+  try{
+    const busy=speechSynthesis.speaking||speechSynthesis.pending;
+    if(busy)speechSynthesis.cancel();
+    // A short pause lets the audio wake up first. Without it the start of a word can be cut off.
+    setTimeout(()=>{try{speechSynthesis.speak(u)}catch(e){}},busy?120:60);
+  }catch(e){}
 }
 function speakCard(){const it=Q&&Q.queue[0];if(it)speakText(it.c.es)}
 function speakId(id){const c=S.cards.find(x=>x.id===id);if(c)speakText(c.es)}
 const spkBtn=fn=>'<button class="spk" onclick="'+fn+'" aria-label="Play pronunciation">'+ICO+'</button>';
+function showVoices(){
+  loadVoices();
+  const vs=VOICES.filter(v=>vl(v).startsWith('es')),el=document.getElementById('vlist');
+  if(!el)return;
+  el.innerHTML=vs.length?'Spanish voices found ('+vs.length+'):<br>'+vs.map(v=>esc(v.name+' ('+v.lang+')')).join('<br>'):'No Spanish voices found. '+(VOICES.length?'The app sees '+VOICES.length+' voices in other languages.':'The app sees no voices at all. Close the page completely and open it again.');
+}
 function speechCard(){
   return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>'<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+'</option>').join('')+'</select>'
    +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the Spanish word aloud after each answer</span></label>'
-   +'<button class="btn sec" onclick="speakText(\'Hola, ¿cómo estás? Me gusta el mate.\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div></div>';
+   +'<button class="btn sec" onclick="speakText(\'Hola, ¿cómo estás? Me gusta el mate.\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div><button class="btn sec" onclick="showVoices()">Show the voices this app can see</button><div class="mu" id="vlist" style="margin-top:8px"></div></div>';
 }
 // Sync between devices through a private GitHub Gist. The token stays in this browser only and is never part of the backup.
 const TK='vocab-trainer-token',SK='vocab-trainer-sync',GF='vocab-trainer.json';
