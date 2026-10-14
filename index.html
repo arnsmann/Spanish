@@ -127,6 +127,23 @@ function showVoices(){
   if(!el)return;
   el.innerHTML=vs.length?'Spanish voices found ('+vs.length+'):<br>'+vs.map(v=>esc(v.name+' ('+v.lang+')')).join('<br>'):'No Spanish voices found. '+(VOICES.length?'The app sees '+VOICES.length+' voices in other languages.':'The app sees no voices at all. Close the page completely and open it again.');
 }
+// Quiet feedback sounds made with the Web Audio API, no sound files. On by default, switch off in Settings.
+let AC=null;
+function tone(f,t0,dur,vol,type,f2){
+  const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+t0;
+  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+0.03);
+}
+function sfx(ok){
+  if(S.snd===false)return;
+  try{
+    if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;AC=new C()}
+    if(AC.state==='suspended')AC.resume();
+    if(ok){tone(659,0,0.16,0.07,'sine');tone(988,0.09,0.26,0.07,'sine')}
+    else tone(220,0,0.28,0.06,'triangle',165);
+  }catch(e){}
+}
 function speechCard(){
   return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>{const p=pickVoice(k);return '<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+(p&&p.exact?'':(p?' (uses '+esc(p.v.name)+')':''))+'</option>'}).join('')+'</select>'
    +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the Spanish word aloud after each answer</span></label>'
@@ -138,7 +155,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202610141736';
+const BUILD='202610141752';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -400,6 +417,7 @@ function settingsView(){
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
    +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
+  h+='<div class="card"><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" style="width:auto" '+(S.snd===false?'':'checked ')+'onchange="S.snd=this.checked;save();if(this.checked)sfx(true)"><span>Play a quiet sound for right and wrong answers</span></label></div>';
   h+=speechCard();
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
   h+=syncCard();
@@ -471,6 +489,7 @@ function check(){
   if(!Q.g&&!Q.tried&&partial(v,answerOf(it))){Q.tried=true;Q.hint='more';render();return}
   if(!Q.g&&!Q.tried&&near(v,answerOf(it))){Q.tried=true;Q.hint='spell';render();return}
   Q.hint=false;
+  sfx(Q.g);
   if(S.auto)speakText(it.c.es);
   if(!it.retry){
     const s=it.c[it.d];
@@ -494,6 +513,7 @@ function setLang(v){curList().lang=v;save();render()}
 function override(){
   const it=Q.queue[0];
   if(!it.retry&&Q.prev){const s=it.c[it.d];s.p=Q.prev.p;s.due=Q.prev.due;promote(s);Q.right++;save()}
+  sfx(true);
   Q.st='ok';next();
 }
 function confirmRe(){
