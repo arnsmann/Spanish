@@ -328,6 +328,16 @@ function saveCourse(){
   if(!parseCourse(t).length){$('#cmsg').textContent='No words found. Each line needs the form: Spanish ; German';return}
   S.courseText=t;loadCourse();save();render();
 }
+function serializeCourse(us){return us.map(u=>'# '+u.u+'\n'+u.s.map(x=>'## '+x[0]+'\n'+x[1]).join('\n')).join('\n')+'\n'}
+function addCourse(){
+  const t=$('#ctext').value,nu=parseCourse(t);
+  if(!nu.length){$('#cmsg').textContent='No words found. Each line needs the form: Spanish ; German';return}
+  const have=new Set(COURSE.map(u=>u.u)),add=nu.filter(u=>!have.has(u.u)),skip=nu.length-add.length;
+  if(!add.length){$('#cmsg').textContent='Nothing added. All '+nu.length+' units are already in your course.';return}
+  S.courseText=(S.courseText?S.courseText.replace(/\s*$/,'\n'):'')+serializeCourse(add);
+  loadCourse();save();render();
+  $('#cmsg').textContent=add.length+' units added'+(skip?', '+skip+' skipped because they already exist':'')+'.';
+}
 function removeCourse(){S.courseText='';loadCourse();save();render()}
 // Cut a unit into packs of 20 words and remember which sections each pack covers.
 function packs(u){
@@ -366,7 +376,7 @@ function courseView(){
     });
     h+='</div>';
   });
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Replace the course text. Lists you already added stay as they are.</div>'+box+'<button class="btn sec" onclick="saveCourse()">Replace course text</button><button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="removeCourse()">Remove course text</button><div id="cmsg" class="mu" style="margin-top:8px"></div></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add more course text, or replace it. Lists you already added stay as they are.</div>'+box+'<button class="btn" onclick="addCourse()">Add to course text</button><button class="btn sec" onclick="saveCourse()">Replace course text</button><button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="removeCourse()">Remove course text</button><div id="cmsg" class="mu" style="margin-top:8px"></div></div>';
   return h;
 }
 function exp(){
