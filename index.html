@@ -42,6 +42,8 @@ nav button{flex:1;padding:14px;border:0;background:none;font-weight:600;color:va
 nav button.on{color:var(--ac)}
 .prog{height:6px;background:var(--bd);border-radius:3px;margin-bottom:6px}
 .prog i{display:block;height:100%;background:var(--ac);border-radius:3px}
+.dia{font-style:italic;font-weight:500;color:var(--ac);font-size:.6em;white-space:nowrap}
+.w .dia,.fb .dia{font-size:.85em}
 </style>
 </head>
 <body>
@@ -72,8 +74,11 @@ const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const norm=s=>s.toLowerCase().trim().replace(/\s+/g,' ');
 const plain=s=>norm(s).replace(/ñ/g,'\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 // 2 = exact, 1 = only accents differ (still counted correct), 0 = wrong
+// A dialect tag looks like {LatAm}. It is shown in italics but never counted when checking what you typed.
+const clean=s=>s.replace(/\s*\{[^}]*\}/g,'').trim();
+const show=s=>esc(s).replace(/\{([^}]*)\}/g,'<i class="dia">$1</i>');
 function grade(input,answer){
-  const alts=answer.split(/\s*[\/;]\s*/);
+  const alts=clean(answer).split(/\s*[\/;]\s*/);
   if(alts.some(a=>norm(a)===norm(input)))return 2;
   if(alts.some(a=>plain(a)===plain(input)))return 1;
   return 0;
@@ -128,16 +133,16 @@ function quizView(){
   const it=Q.queue[0],es=it.d==='sd';
   const prompt=es?it.c.es:it.c.de,answer=es?it.c.de:it.c.es;
   let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
-  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+esc(prompt)+'</div>';
+  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>';
   if(Q.st==='ask'){
     if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">Almost there. Check your spelling and try once more.</div>';
     h+='<input id="ans" value="'+(Q.hint?esc(Q.val):'')+'" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
     if(!es)h+=keysRow('ans');
     h+='<button class="btn" onclick="check()">Check</button>';
   }else if(Q.st==='ok'){
-    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents: '+esc(answer):'')+'</div><button class="btn" onclick="next()">Next</button>';
+    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents: '+show(answer):'')+'</div><button class="btn" onclick="next()">Next</button>';
   }else{
-    h+='<div class="fb bad">Not quite. Correct answer:<br>'+esc(answer)+'</div>'
+    h+='<div class="fb bad">Not quite. Correct answer:<br>'+show(answer)+'</div>'
      +'<div class="mu" style="margin-top:10px">Type it once to continue. This card comes back in 10 minutes.</div>'
      +'<input id="re" style="margin-top:8px" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">'
      +(!es?keysRow('re'):'')+'<button class="btn" onclick="confirmRe()">Continue</button><button class="btn sec" onclick="override()">No, I was right</button>';
@@ -163,7 +168,7 @@ function dist(a,b){
 }
 // A near miss is a likely typo: 1 letter off for words of 4+ letters, 2 letters off for 8+ letters.
 function near(v,answer){
-  return answer.split(/\s*[\/;]\s*/).some(a=>{
+  return clean(answer).split(/\s*[\/;]\s*/).some(a=>{
     const x=plain(a),y=plain(v),lim=x.length>=8?2:x.length>=4?1:0;
     return lim>0&&dist(x,y)<=lim;
   });
@@ -224,7 +229,7 @@ function wordsView(){
    +keysRow('nes')+'<input id="nde" placeholder="'+LN[curList().lang]+' (alternatives with a slash)" autocorrect="off" spellcheck="false" style="margin-top:2px">'
    +'<button class="btn" onclick="add()">Add word</button></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><button class="btn sec" onclick="bulk()">Import lines</button></div>';
-  h+='<div class="card">'+(l.length?l.map(c=>'<div class="w"><div><b>'+esc(c.es)+'</b><div class="mu">'+esc(c.de)+'</div></div><button onclick="del('+c.id+')">✕</button></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
+  h+='<div class="card">'+(l.length?l.map(c=>'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+'</div></div><button onclick="del('+c.id+')">✕</button></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
    +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
   return h;
