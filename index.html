@@ -49,6 +49,9 @@ nav button.on{color:var(--ac)}
 .dia{font-style:italic;font-weight:500;color:var(--dia);font-size:.6em;white-space:nowrap}
 .w .dia,.fb .dia{font-size:.85em}
 .w button.e{color:var(--ac)}
+.spk{border:0;background:none;color:var(--ac);padding:6px 8px;line-height:0;vertical-align:middle}
+.w button.spk{color:var(--ac)}
+.lab .spk{padding:4px 10px}
 body{background:transparent}
 body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--scene) center bottom/cover no-repeat}
 h1{display:flex;align-items:center;gap:10px;letter-spacing:.2px;min-height:44px}
@@ -67,6 +70,56 @@ try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.cards)S=r}catch(e){}
 const THEMES={forest:{n:'Forest',bar:'#222b26'},beach:{n:'Beach',bar:'#f3ead7'},mountain:{n:'Snowy mountains',bar:'#e6eef5'},autumn:{n:'Autumn town',bar:'#2a2420'},city:{n:'City at night',bar:'#1f2530'}};
 function applyTheme(){const t=THEMES[S.theme]?S.theme:'forest';document.documentElement.setAttribute('data-theme',t);const m=document.querySelector('meta[name=theme-color]');if(m)m.content=THEMES[t].bar}
 function setTheme(v){S.theme=v;save();render()}
+// Read aloud with the voices built into the phone. Which accents exist depends on the voices installed on the device.
+const ICO='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>';
+const ACC={'es-ES':{n:'Spain',fb:['es-ES']},'es-AR':{n:'Argentina',fb:['es-AR','es-UY','es-MX','es-US','es-419']},'es-CO':{n:'Colombia',fb:['es-CO','es-VE','es-MX','es-US','es-419']}};
+let VOICES=[];
+function loadVoices(){try{VOICES=('speechSynthesis' in window)?speechSynthesis.getVoices():[]}catch(e){VOICES=[]}}
+loadVoices();
+try{speechSynthesis.addEventListener('voiceschanged',()=>{loadVoices();const el=document.getElementById('vst');if(el)el.textContent=voiceStatus()})}catch(e){}
+const vl=v=>(v.lang||'').replace('_','-').toLowerCase();
+function pickVoice(acc){
+  const vs=VOICES.filter(v=>vl(v).startsWith('es'));
+  const a=ACC[acc]||ACC['es-ES'];
+  for(const l of a.fb.concat(['es-ES'])){
+    const m=vs.filter(v=>vl(v)===l.toLowerCase());
+    if(m.length)return {v:m.find(v=>/enhanced|premium|siri/i.test(v.name+' '+(v.voiceURI||'')))||m[0],exact:l===a.fb[0]};
+  }
+  return vs.length?{v:vs[0],exact:false}:null;
+}
+function voiceStatus(){
+  if(!('speechSynthesis' in window))return 'This browser cannot read aloud.';
+  const acc=S.accent||'es-ES',p=pickVoice(acc);
+  if(!p)return 'No Spanish voice found on this device yet.';
+  if(p.exact)return 'Voice: '+p.v.name+' ('+p.v.lang+')';
+  return 'No '+ACC[acc].n+' voice is installed, so it uses '+p.v.name+' ('+p.v.lang+'). On an iPhone you can add one under Settings, Accessibility, Spoken Content, Voices, Spanish.';
+}
+// Which spelling to read: Spain skips Latin American variants, Argentina prefers {Arg}, Colombia prefers {LatAm}.
+function pickAlt(es,acc){
+  const alts=es.split(/\s*\/\s*/),tag=a=>/\{(?:LatAm|Arg)\}/.test(a);
+  if(acc==='es-ES')return alts.find(a=>!tag(a))||alts[0];
+  const want=acc==='es-AR'?['{Arg}','{LatAm}']:['{LatAm}'];
+  for(const w of want){const f=alts.find(a=>a.includes(w));if(f)return f}
+  return alts.find(a=>!/\{Arg\}/.test(a))||alts[0];
+}
+function speakText(es,raw){
+  if(!('speechSynthesis' in window))return;
+  const acc=S.accent||'es-ES';
+  const t=raw?es:clean(pickAlt(es,acc)).replace(/\.{3}|…/g,' ');
+  if(!t.trim())return;
+  const u=new SpeechSynthesisUtterance(t),p=pickVoice(acc);
+  if(p){u.voice=p.v;u.lang=p.v.lang}else u.lang=acc;
+  u.rate=.85;
+  try{speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
+}
+function speakCard(){const it=Q&&Q.queue[0];if(it)speakText(it.c.es)}
+function speakId(id){const c=S.cards.find(x=>x.id===id);if(c)speakText(c.es)}
+const spkBtn=fn=>'<button class="spk" onclick="'+fn+'" aria-label="Play pronunciation">'+ICO+'</button>';
+function speechCard(){
+  return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>'<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+'</option>').join('')+'</select>'
+   +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the Spanish word aloud after each answer</span></label>'
+   +'<button class="btn sec" onclick="speakText(\'Hola, ¿cómo estás? Me gusta el mate.\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div></div>';
+}
 // Sync between devices through a private GitHub Gist. The token stays in this browser only and is never part of the backup.
 const TK='vocab-trainer-token',SK='vocab-trainer-sync',GF='vocab-trainer.json';
 let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},booting=false,pushT=null;
@@ -314,6 +367,7 @@ function homeView(){
 
   for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
   h+='</div>';
+  h+=speechCard();
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
   h+=syncCard();
   return h;
@@ -335,16 +389,16 @@ function quizView(){
   const it=Q.queue[0],es=it.d==='sd';
   const prompt=es?it.c.es:it.c.de,answer=es?it.c.de:it.c.es;
   let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
-  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>';
+  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>'+(es?'<div class="lab">'+spkBtn('speakCard()')+'</div>':'');
   if(Q.st==='ask'){
     if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">'+(Q.hint==='more'?'This card has more than one answer. Add the other one too.':'Almost there. Check your spelling and try once more.')+'</div>';
     h+='<input id="ans" value="'+(Q.hint?esc(Q.val):'')+'" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
     if(!es)h+=keysRow('ans');
     h+='<button class="btn" onclick="check()">Check</button>';
   }else if(Q.st==='ok'){
-    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents:':'.')+'<div style="font-weight:500;margin-top:4px">'+show(answer)+'</div></div><button class="btn" onclick="next()">Next</button>';
+    h+='<div class="fb ok">Correct'+(Q.g===1?'. Watch the accents:':'.')+'<div style="font-weight:500;margin-top:4px">'+show(answer)+'</div></div>'+(es?'':'<div class="lab">'+spkBtn('speakCard()')+'</div>')+'<button class="btn" onclick="next()">Next</button>';
   }else{
-    h+='<div class="fb bad">Not quite. Correct answer:<br>'+show(answer)+'</div>'
+    h+='<div class="fb bad">Not quite. Correct answer:<br>'+show(answer)+'</div>'+(es?'':'<div class="lab">'+spkBtn('speakCard()')+'</div>')
      +'<div class="mu" style="margin-top:10px">Type it once to continue. This card comes back in 10 minutes.</div>'
      +'<input id="re" style="margin-top:8px" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">'
      +(!es?keysRow('re'):'')+'<button class="btn" onclick="confirmRe()">Continue</button><button class="btn sec" onclick="override()">No, I was right</button>';
@@ -383,6 +437,7 @@ function check(){
   if(!Q.g&&!Q.tried&&partial(v,answerOf(it))){Q.tried=true;Q.hint='more';render();return}
   if(!Q.g&&!Q.tried&&near(v,answerOf(it))){Q.tried=true;Q.hint='spell';render();return}
   Q.hint=false;
+  if(S.auto)speakText(it.c.es);
   if(!it.retry){
     const s=it.c[it.d];
     Q.prev={p:s.p,due:s.due};
@@ -434,7 +489,7 @@ function wordsView(){
    +keysRow('nes')+'<input id="nde" placeholder="'+LN[curList().lang]+' (alternatives with a slash)" autocorrect="off" spellcheck="false" style="margin-top:2px">'
    +'<button class="btn" onclick="add()">Add word</button></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation. Imported words are released a few per day (see the Learn tab), unless you tick the box below.</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="bnow" type="checkbox" style="width:auto">Make all of them available right away</label><button class="btn sec" onclick="bulk()">Import lines</button></div>';
-  h+='<div class="card">'+(l.length?l.map(c=>c.id===ed?editRow(c):'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+(c.w?' · waiting':'')+'</div></div><div style="white-space:nowrap"><button class="e" onclick="edit('+c.id+')">✎</button><button onclick="del('+c.id+')">✕</button></div></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
+  h+='<div class="card">'+(l.length?l.map(c=>c.id===ed?editRow(c):'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+(c.w?' · waiting':'')+'</div></div><div style="white-space:nowrap">'+spkBtn('speakId('+c.id+')')+'<button class="e" onclick="edit('+c.id+')">✎</button><button onclick="del('+c.id+')">✕</button></div></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Backup. Safari can clear stored data if the site is unused for a long time, so save a copy now and then.</div>'
    +'<button class="btn sec" onclick="exp()">Show backup text</button><textarea id="bk" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste it here."></textarea><button class="btn sec" onclick="imp()">Restore from text</button><div id="bkmsg" class="mu"></div></div>';
   return h;
