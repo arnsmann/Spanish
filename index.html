@@ -91,7 +91,7 @@ function render(){
   $('#t-learn').className=tab==='learn'?'on':'';
   $('#t-words').className=tab==='words'?'on':'';
   $('#app').innerHTML=tab==='words'?wordsView():(Q?quizView():homeView());
-  const f=$('#ans')||$('#re');if(f)f.focus();
+  const f=$('#ans')||$('#re');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
 }
 
 function homeView(){
@@ -130,7 +130,8 @@ function quizView(){
   let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
   h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+esc(prompt)+'</div>';
   if(Q.st==='ask'){
-    h+='<input id="ans" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
+    if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">Almost there. Check your spelling and try once more.</div>';
+    h+='<input id="ans" value="'+(Q.hint?esc(Q.val):'')+'" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
     if(!es)h+=keysRow('ans');
     h+='<button class="btn" onclick="check()">Check</button>';
   }else if(Q.st==='ok'){
@@ -154,10 +155,25 @@ function ins(e,id,ch){
   el.setSelectionRange(a+1,a+1);el.focus();
 }
 function answerOf(it){return it.d==='sd'?it.c.de:it.c.es}
+// Edit distance: how many single letter changes turn a into b.
+function dist(a,b){
+  const m=a.length,n=b.length;let p=[];for(let j=0;j<=n;j++)p[j]=j;
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}
+  return p[n];
+}
+// A near miss is a likely typo: 1 letter off for words of 4+ letters, 2 letters off for 8+ letters.
+function near(v,answer){
+  return answer.split(/\s*[\/;]\s*/).some(a=>{
+    const x=plain(a),y=plain(v),lim=x.length>=8?2:x.length>=4?1:0;
+    return lim>0&&dist(x,y)<=lim;
+  });
+}
 function check(){
   const it=Q.queue[0],v=$('#ans').value;
   if(!v.trim())return;
   Q.val=v;Q.g=grade(v,answerOf(it));
+  if(!Q.g&&!Q.tried&&near(v,answerOf(it))){Q.tried=true;Q.hint=true;render();return}
+  Q.hint=false;
   if(!it.retry){
     const s=it.c[it.d];
     Q.prev={p:s.p,due:s.due};
@@ -191,7 +207,7 @@ function next(){
   const it=Q.queue.shift();
   if(Q.st==='bad'&&!it.retry)Q.queue.splice(Math.min(4,Q.queue.length),0,{c:it.c,d:it.d,retry:true});
   if(!(Q.st==='bad'&&!it.retry))Q.done++;
-  Q.st='ask';render();
+  Q.st='ask';Q.tried=false;Q.hint=false;Q.val='';render();
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||tab!=='learn'||!Q||!Q.queue.length)return;
