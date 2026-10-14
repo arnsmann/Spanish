@@ -138,7 +138,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202610141716';
+const BUILD='202610141720';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -381,7 +381,7 @@ function homeView(){
   const wt=S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length;
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">New words per day</div><select onchange="S.perDay=+this.value;save();render()">'+[3,5,8,10,15,20,9999].map(n=>'<option value="'+n+'"'+(S.perDay===n?' selected':'')+'>'+(n===9999?'All at once':n)+'</option>').join('')+'</select>'
    +'<div class="mu" style="margin-top:10px">Released today: '+(S.rel||0)+'. Waiting in this selection: '+wt+'.</div>'
-   +(wt?'<div class="row" style="margin-top:10px"><input id="mn" type="number" inputmode="numeric" min="1" value="'+moreN+'" style="width:90px;flex:none;text-align:center" oninput="moreN=Math.max(1,Math.floor(+this.value)||1)"><button class="btn sec" style="margin:0" onclick="moreGo()">Release this many now</button></div><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'')+'</div>';
+   +(wt?'<div class="row" style="margin-top:10px"><input id="mn" type="number" inputmode="numeric" min="1" value="'+moreN+'" style="width:90px;flex:none;text-align:center" oninput="moreN=Math.max(1,Math.floor(+this.value)||1)"><button class="btn sec" style="margin:0" onclick="moreGo()">Release this many now</button></div><button class="btn sec" onclick="more(1e9)">Release all '+wt+' now</button>':'<div class="mu" style="margin-top:10px">No words are waiting right now.</div>'+(COURSE.length?'<button class="btn sec" onclick="nextPack()">Add the next pack from the course</button>':'<button class="btn sec" onclick="go(\'course\')">Open the Course tab</button>'))+'</div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:6px">Your cards by phase</div>';
 
   for(let p=1;p<=6;p++)h+='<div class="bar"><span>Phase '+p+'</span><i style="width:'+(cnt[p]/mx*60)+'%"></i><span>'+cnt[p]+'</span></div>';
