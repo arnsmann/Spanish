@@ -69,6 +69,16 @@ const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
 // Phases from 2 on count in calendar days. A new day starts at 4 am, so words you learned last night are ready this morning.
 const ROLL=4,DAYS=[0,0,1,3,7,14,30];
 function dueIn(n){const d=new Date(Date.now()-ROLL*36e5);return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n,ROLL).getTime()}
+// Daily streak: answer at least the daily goal in a day (new day at 4 am). Retries and "No, I was right" do not count twice.
+const GOALS=[5,10,20,30,50];
+function dayNum(off){const d=new Date(Date.now()-ROLL*36e5);return Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/DAY)+(off||0)}
+function skv(){const k=S.sk||(S.sk={d:0,n:0,cur:0,best:0,last:-9});const t=dayNum();if(k.d!==t){k.d=t;k.n=0}return k}
+function streakNow(){const k=skv();return (k.last===dayNum()||k.last===dayNum(-1))?k.cur:0}
+function countAnswer(){const k=skv(),g=S.goal||10;k.n++;if(k.n>=g&&k.last!==dayNum()){k.cur=(k.last===dayNum(-1))?k.cur+1:1;k.last=dayNum();if(k.cur>k.best)k.best=k.cur;return true}return false}
+function streakCard(){
+  const k=skv(),g=S.goal||10,s=streakNow(),done=k.n>=g;
+  return '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="mu">Daily streak</div><div class="row" style="gap:8px;margin-top:2px"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 2 2 2 3 1-2 1-5 1-8z" fill="var(--ac)"/></svg><span style="font-size:26px;font-weight:700">'+s+(s===1?' day':' days')+'</span></div></div><div class="mu" style="text-align:right">'+(done?'Goal reached today':Math.min(k.n,g)+' of '+g+' answers today')+'<br>Best: '+Math.max(k.best,s)+'</div></div><div class="prog" style="margin-top:12px;margin-bottom:0"><i style="width:'+Math.min(100,k.n/g*100)+'%"></i></div></div>';
+}
 function snapDay(t){const d=new Date(t-ROLL*36e5);return new Date(d.getFullYear(),d.getMonth(),d.getDate(),ROLL).getTime()}
 const KEY='vocab-trainer-v1';
 let S={cards:[],dir:'both',seeded:false};
@@ -160,7 +170,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202610150828';
+const BUILD='202610150917';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -396,7 +406,7 @@ function homeView(){
   const mx=Math.max(1,...cnt);
   const future=it.map(x=>x.c[x.d].due).filter(d=>d>now);
   const next=future.length?Math.min(...future)-now:0;
-  let h='<h1>Spanish Trainer</h1>'+(UPD?'<div class="card"><b>A new version is available</b><div class="mu" style="margin:6px 0 10px">Your progress stays as it is.</div><button class="btn" onclick="location.reload()">Update now</button></div>':'')+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
+  let h='<h1>Spanish Trainer</h1>'+(UPD?'<div class="card"><b>A new version is available</b><div class="mu" style="margin:6px 0 10px">Your progress stays as it is.</div><button class="btn" onclick="location.reload()">Update now</button></div>':'')+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+streakCard()+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
   h+=forecastCard(it,now,S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length);
@@ -424,6 +434,7 @@ function settingsView(){
    +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
   h+='<div class="card"><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" style="width:auto" '+(S.snd===false?'':'checked ')+'onchange="S.snd=this.checked;save();if(this.checked)sfx(true)"><span>Play a quiet sound for right and wrong answers</span></label></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Daily goal for your streak</div><select onchange="S.goal=+this.value;save();render()">'+GOALS.map(n=>'<option value="'+n+'"'+((S.goal||10)===n?' selected':'')+'>'+n+' answers a day</option>').join('')+'</select><div class="mu" style="margin-top:8px">Answer this many cards in a day to keep your streak. A new day starts at 4 am.</div></div>';
   h+=speechCard();
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
   h+=syncCard();
@@ -442,11 +453,11 @@ function start(){
 const KEYS='á é í ó ú ü ñ ¿ ¡'.split(' ');
 function quizView(){
   if(!Q.queue.length){
-    return '<h1>Session finished</h1><div class="card"><div class="big">'+Q.right+' / '+Q.total+'</div><div class="mu lab">answered correctly on the first try</div><button class="btn" onclick="go(\'learn\')">Back</button></div>';
+    return '<h1>Session finished</h1><div class="card"><div class="big">'+Q.right+' / '+Q.total+'</div><div class="mu lab">answered correctly on the first try</div><div class="mu" style="text-align:center;margin-top:10px">Today: '+Math.min(skv().n,S.goal||10)+' of '+(S.goal||10)+' answers · Streak: '+streakNow()+(streakNow()===1?' day':' days')+'</div><button class="btn" onclick="go(\'learn\')">Back</button></div>';
   }
   const it=Q.queue[0],es=it.d==='sd';
   const prompt=es?it.c.es:it.c.de,answer=es?it.c.de:it.c.es;
-  let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div><div class="card">';
+  let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div>'+(Q.goalMsg?'<div class="fb ok" style="margin:8px 0">Daily goal reached. Streak: '+streakNow()+(streakNow()===1?' day':' days')+'</div>':'')+'<div class="card">';
   h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>'+(es?'<div class="lab">'+spkBtn('speakCard()')+'</div>':'');
   if(Q.st==='ask'){
     if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">'+(Q.hint==='more'?'This card has more than one answer. Add the other one too.':'Almost there. Check your spelling and try once more.')+'</div>';
@@ -504,6 +515,7 @@ function check(){
       promote(s);
       Q.right++;
     }else{s.p=1;s.due=Date.now()+INT[1]}
+    if(countAnswer())Q.goalMsg=true;
     save();
   }
   Q.st=Q.g?'ok':'bad';render();
@@ -531,7 +543,7 @@ function next(){
   const it=Q.queue.shift();
   if(Q.st==='bad'&&!it.retry)Q.queue.splice(Math.min(4,Q.queue.length),0,{c:it.c,d:it.d,retry:true});
   if(!(Q.st==='bad'&&!it.retry))Q.done++;
-  Q.st='ask';Q.tried=false;Q.hint=false;Q.val='';render();
+  Q.st='ask';Q.goalMsg=false;Q.tried=false;Q.hint=false;Q.val='';render();
   if(!Q.queue.length&&SYN.tok&&SYN.gid){clearTimeout(pushT);setTimeout(()=>syncNow(false),300)}
 }
 document.addEventListener('keydown',e=>{
