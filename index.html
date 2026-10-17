@@ -89,15 +89,22 @@ function setTheme(v){S.theme=v;save();render()}
 // Read aloud with the voices built into the phone. Which accents exist depends on the voices installed on the device.
 const ICO='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>';
 const ACC={'es-ES':{n:'Spain',fb:['es-ES']},'es-AR':{n:'Argentina',fb:['es-AR','es-UY','es-MX','es-US','es-419']},'es-CO':{n:'Colombia',fb:['es-CO','es-VE','es-MX','es-US','es-419']}};
+// The language being learned. Spanish is the default. Italian can be chosen in Settings or with the link ending in ?lang=it.
+const TLS={
+  es:{n:'Spanish',a:'Español',keys:'á é í ó ú ü ñ ¿ ¡',pre:'es',acc:ACC,def:'es-ES',test:'Hola, ¿cómo estás? Me gusta el mate.'},
+  it:{n:'Italian',a:'Italiano',keys:'à è é ì ò ù',pre:'it',acc:{'it-IT':{n:'Italy',fb:['it-IT']},'it-CH':{n:'Switzerland',fb:['it-CH','it-IT']}},def:'it-IT',test:'Ciao, come stai? Mi piace il mate.'}
+};
+const TL=()=>TLS[S.tl]||TLS.es;
+const accOf=()=>TL().acc[S.accent]?S.accent:TL().def;
 let VOICES=[];
 function loadVoices(){try{VOICES=('speechSynthesis' in window)?speechSynthesis.getVoices():[]}catch(e){VOICES=[]}}
 loadVoices();
 try{speechSynthesis.addEventListener('voiceschanged',()=>{loadVoices();const el=document.getElementById('vst');if(el)el.textContent=voiceStatus()})}catch(e){}
 const vl=v=>(v.lang||'').replace('_','-').toLowerCase();
 function pickVoice(acc){
-  const vs=VOICES.filter(v=>vl(v).startsWith('es'));
-  const a=ACC[acc]||ACC['es-ES'];
-  for(const l of a.fb.concat(['es-ES'])){
+  const vs=VOICES.filter(v=>vl(v).startsWith(TL().pre));
+  const a=TL().acc[acc]||TL().acc[TL().def];
+  for(const l of a.fb.concat([TL().def])){
     const m=vs.filter(v=>vl(v)===l.toLowerCase());
     if(m.length)return {v:m.find(v=>/enhanced|premium|siri/i.test(v.name+' '+(v.voiceURI||'')))||m[0],exact:l===a.fb[0]};
   }
@@ -105,25 +112,26 @@ function pickVoice(acc){
 }
 function voiceStatus(){
   if(!('speechSynthesis' in window))return 'This browser cannot read aloud.';
-  const acc=S.accent||'es-ES',p=pickVoice(acc);
-  if(!p)return 'No Spanish voice found on this device yet.';
+  const acc=accOf(),p=pickVoice(acc);
+  if(!p)return 'No '+TL().n+' voice found on this device yet, so nothing can be read aloud. On Windows open Settings, Time & language, Speech, Add voices and pick '+TL().n+'. On a Mac open System Settings, Accessibility, Spoken Content, System voice, Manage Voices. On an iPhone open Settings, Accessibility, Spoken Content, Voices. Then close the browser completely and open it again.';
   if(p.exact)return 'Voice: '+p.v.name+' ('+p.v.lang+')';
-  return 'No '+ACC[acc].n+' voice is installed, so it uses '+p.v.name+' ('+p.v.lang+'). On an iPhone you can add one under Settings, Accessibility, Read & Speak (Spoken Content on older iOS), Voices, Spanish.';
+  return 'No '+TL().acc[acc].n+' voice is installed, so it uses '+p.v.name+' ('+p.v.lang+'). On an iPhone you can add one under Settings, Accessibility, Read & Speak (Spoken Content on older iOS), Voices, '+TL().n+'.';
 }
 // Which spelling to read: Spain skips Latin American variants, Argentina prefers {Arg}, Colombia prefers {LatAm}.
 function pickAlt(es,acc){
   const alts=es.split(/\s*\/\s*/),tag=a=>/\{(?:LatAm|Arg)\}/.test(a);
-  if(acc==='es-ES')return alts.find(a=>!tag(a))||alts[0];
+  if(acc==='es-ES'||!/^es/.test(acc))return alts.find(a=>!tag(a))||alts[0];
   const want=acc==='es-AR'?['{Arg}','{LatAm}']:['{LatAm}'];
   for(const w of want){const f=alts.find(a=>a.includes(w));if(f)return f}
   return alts.find(a=>!/\{Arg\}/.test(a))||alts[0];
 }
 function speakText(es,raw){
   if(!('speechSynthesis' in window))return;
-  const acc=S.accent||'es-ES';
+  const acc=accOf();
   const t=raw?es:clean(pickAlt(es,acc)).replace(/\.{3}|…/g,' ');
   if(!t.trim())return;
   const u=new SpeechSynthesisUtterance(t),p=pickVoice(acc);
+  if(!p)noVoiceNote();
   if(p){u.voice=p.v;u.lang=p.v.lang}else u.lang=acc;
   u.rate=.85;
   try{
@@ -133,14 +141,21 @@ function speakText(es,raw){
     setTimeout(()=>{try{speechSynthesis.speak(u)}catch(e){}},busy?120:60);
   }catch(e){}
 }
+let nvT=null;
+function noVoiceNote(){
+  let n=document.getElementById('nvn');
+  if(!n){n=document.createElement('div');n.id='nvn';n.style.cssText='position:fixed;left:12px;right:12px;bottom:84px;z-index:50;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--bd);color:var(--tx);font-size:14px;box-shadow:0 4px 18px rgba(0,0,0,.25)';document.body.appendChild(n)}
+  n.textContent='No '+TL().n+' voice is installed on this device, so nothing can be read aloud. See Settings, Pronunciation for how to add one.';
+  n.style.display='block';clearTimeout(nvT);nvT=setTimeout(()=>{n.style.display='none'},6000);
+}
 function speakCard(){const it=Q&&Q.queue[0];if(it)speakText(it.c.es)}
 function speakId(id){const c=S.cards.find(x=>x.id===id);if(c)speakText(c.es)}
 const spkBtn=fn=>'<button class="spk" onclick="'+fn+'" aria-label="Play pronunciation">'+ICO+'</button>';
 function showVoices(){
   loadVoices();
-  const vs=VOICES.filter(v=>vl(v).startsWith('es')),el=document.getElementById('vlist');
+  const vs=VOICES.filter(v=>vl(v).startsWith(TL().pre)),el=document.getElementById('vlist');
   if(!el)return;
-  el.innerHTML=vs.length?'Spanish voices found ('+vs.length+'):<br>'+vs.map(v=>esc(v.name+' ('+v.lang+')')).join('<br>'):'No Spanish voices found. '+(VOICES.length?'The app sees '+VOICES.length+' voices in other languages.':'The app sees no voices at all. Close the page completely and open it again.');
+  el.innerHTML=vs.length?TL().n+' voices found ('+vs.length+'):<br>'+vs.map(v=>esc(v.name+' ('+v.lang+')')).join('<br>'):'No '+TL().n+' voices found. '+(VOICES.length?'The app sees '+VOICES.length+' voices in other languages.':'The app sees no voices at all. Close the page completely and open it again.');
 }
 // Quiet feedback sounds made with the Web Audio API, no sound files. On by default, switch off in Settings.
 let AC=null;
@@ -160,9 +175,9 @@ function sfx(ok){
   }catch(e){}
 }
 function speechCard(){
-  return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(ACC).map(k=>{const p=pickVoice(k);return '<option value="'+k+'"'+((S.accent||'es-ES')===k?' selected':'')+'>'+ACC[k].n+(p&&p.exact?'':(p?' (uses '+esc(p.v.name)+')':''))+'</option>'}).join('')+'</select>'
-   +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the Spanish word aloud after each answer</span></label>'
-   +'<button class="btn sec" onclick="speakText(\'Hola, ¿cómo estás? Me gusta el mate.\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div><button class="btn sec" onclick="showVoices()">Show the voices this app can see</button><div class="mu" id="vlist" style="margin-top:8px"></div></div>';
+  return '<div class="card"><div class="mu" style="margin-bottom:8px">Pronunciation</div><select onchange="S.accent=this.value;save();render()">'+Object.keys(TL().acc).map(k=>{const p=pickVoice(k);return '<option value="'+k+'"'+((accOf())===k?' selected':'')+'>'+TL().acc[k].n+(p&&p.exact?'':(p?' (uses '+esc(p.v.name)+')':''))+'</option>'}).join('')+'</select>'
+   +'<label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" '+(S.auto?'checked ':'')+'onchange="S.auto=this.checked;save()"><span>Read the '+TL().n+' word aloud after each answer</span></label>'
+   +'<button class="btn sec" onclick="speakText(\''+TL().test+'\',true)">Play a test sentence</button><div class="mu" style="margin-top:8px" id="vst">'+esc(voiceStatus())+'</div><button class="btn sec" onclick="showVoices()">Show the voices this app can see</button><div class="mu" id="vlist" style="margin-top:8px"></div></div>';
 }
 // Sync between devices through a private GitHub Gist. The token stays in this browser only and is never part of the backup.
 const TK='vocab-trainer-token',SK='vocab-trainer-sync',GF='vocab-trainer.json';
@@ -170,7 +185,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202610150917';
+const BUILD='202610171303';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -181,6 +196,7 @@ async function checkUpdate(){
 }
 const seed=[];
 migrate();
+try{const q=new URLSearchParams(location.search).get('lang');if(q&&TLS[q]&&!S.cards.length&&!S.seeded){S.tl=q;if(q==='it'&&S.lists[0])S.lists[0].lang='nl'}}catch(e){}
 if(!S.cards.length&&!S.seeded){seed.forEach(w=>addCard(w[0],w[1]));S.seeded=true;save()}
 function save(){
   S.mod=Date.now();
@@ -196,7 +212,7 @@ function addCard(es,de,wait){
 function migrate(){
   if(!S.lists||!S.lists.length)S.lists=[{id:1,name:'My words'}];
   S.cards.forEach(c=>{if(!S.lists.some(l=>l.id===c.l))c.l=S.lists[0].id});
-  S.lists.forEach(l=>{if(l.lang!=='en')l.lang='de'});
+  S.lists.forEach(l=>{if(l.lang!=='en'&&l.lang!=='nl')l.lang='de'});
   if(!S.perDay)S.perDay=5;
   if(!S.dayb){S.dayb=true;const n=Date.now();S.cards.forEach(c=>['sd','ds'].forEach(k=>{const s=c[k];if(s&&s.p>=2&&s.due>n){const x=snapDay(s.due);if(x<s.due)s.due=Math.max(x,n)}}))}
   if(!S.packs)S.packs={};
@@ -210,7 +226,9 @@ const norm=s=>s.toLowerCase().replace(/[¿¡?!.,:…]/g,' ').replace(/\s+/g,' ')
 const plain=s=>norm(s).replace(/ß/g,'ss').replace(/ñ/g,'\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 // 2 = exact, 1 = only accents differ (still counted correct), 0 = wrong
 // A dialect tag looks like {LatAm}. It is shown in italics but never counted when checking what you typed.
-const clean=s=>{const b=s.replace(/\s*\{[^}]*\}/g,'').replace(/\(?\b(?:etw|jdn|jdm)\b\.?(?:\/(?:etw|jdn|jdm)\b\.?)?\)?\s*/g,' ').replace(/\s+/g,' ').trim();const r=b.replace(/\s+(?:hacer\s+)?(?:(?:de|en|a|por)\s+)?(?:algo|alguien)\b/g,'').replace(/\s+(?:a\s+)?alguien\b/g,'').trim();return r||b};
+// Markers like etw. / iets / algo / qualcosa are not counted. Stripping never leaves an empty answer.
+const MARKS=[/\(?\b(?:etw|jdn|jdm)\b\.?(?:\/(?:etw|jdn|jdm)\b\.?)?\)?\s*/g,/\(?\b(?:iets|iemand|iem)\b\.?\)?\s*/g,/\s+(?:hacer\s+)?(?:(?:de|en|a|por)\s+)?(?:algo|alguien)\b/g,/\s+(?:a\s+)?alguien\b/g,/\s+(?:(?:di|a|da|per|su)\s+)?(?:qualcosa|qualcuno)\b/g];
+const clean=s=>{let r=s.replace(/\s*\{[^}]*\}/g,'').replace(/\s+/g,' ').trim();MARKS.forEach(x=>{const q=r.replace(x,' ').replace(/\s+/g,' ').trim();if(q)r=q});return r};
 const show=s=>esc(s).replace(/\{([^}]*)\}/g,'<i class="dia">$1</i>');
 // A card can list several answers separated by " / ". A dialect word ({LatAm}, {Arg}) counts as a variant of the word before it.
 function groups(answer){
@@ -364,7 +382,7 @@ async function connectSync(){
       else applyRemote(r);
     }else{
       if(!S.mod)S.mod=Date.now();
-      const g=await gh('/gists',{method:'POST',body:{description:'Spanish trainer sync',public:false,files:{[GF]:{content:snap()}}}});
+      const g=await gh('/gists',{method:'POST',body:{description:'Vocab trainer sync',public:false,files:{[GF]:{content:snap()}}}});
       SYN.gid=g.id;SYN.base=S.mod;synSave();
     }
     synSave();SY.last=Date.now();
@@ -388,7 +406,7 @@ function syncCard(){
   if(SY.conf)return conflictCard();
   if(on)return '<div class="card"><div class="mu" style="margin-bottom:6px">Sync between devices</div><div class="mu synst" style="margin-bottom:8px;color:var(--tx)">'+synStatus()+'</div><button class="btn sec" onclick="syncNow(true)">Sync now</button><button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="disconnectSync()">Disconnect this device</button><div class="mu" style="margin-top:8px">Disconnecting keeps your progress on this device and in the cloud. The pasted course text is not synced, so paste it again on a new device if you want to add more packs.</div></div>';
   return '<div class="card"><div class="mu" style="margin-bottom:6px">Sync between devices</div><div class="mu" style="margin-bottom:8px">Your progress is saved in an unlisted file (a Gist) in your own GitHub account. Only people with its long web address could see it. Do this once on each device:</div>'
-   +'<div class="mu" style="margin-bottom:8px">1. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Spanish%20trainer" target="_blank" rel="noopener" style="color:var(--ac)">Open this GitHub page</a> and sign in.<br>2. Set Expiration to No expiration. The gist box is already ticked, leave everything else off.<br>3. Scroll down, tap Generate token, copy the token.<br>4. Paste it below and tap Connect.</div>'
+   +'<div class="mu" style="margin-bottom:8px">1. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Vocab%20trainer" target="_blank" rel="noopener" style="color:var(--ac)">Open this GitHub page</a> and sign in.<br>2. Set Expiration to No expiration. The gist box is already ticked, leave everything else off.<br>3. Scroll down, tap Generate token, copy the token.<br>4. Paste it below and tap Connect.</div>'
    +'<input id="tok" type="password" placeholder="Paste your token here" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"><button class="btn" onclick="connectSync()">Connect</button><div class="mu synst" style="margin-top:8px">'+(SY.busy?'Connecting...':SY.st==='err'?esc(SY.msg):'')+'</div></div>';
 }
 function forecastCard(it,now,wt){
@@ -406,7 +424,7 @@ function homeView(){
   const mx=Math.max(1,...cnt);
   const future=it.map(x=>x.c[x.d].due).filter(d=>d>now);
   const next=future.length?Math.min(...future)-now:0;
-  let h='<h1>Spanish Trainer</h1>'+(UPD?'<div class="card"><b>A new version is available</b><div class="mu" style="margin:6px 0 10px">Your progress stays as it is.</div><button class="btn" onclick="location.reload()">Update now</button></div>':'')+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+streakCard()+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
+  let h='<h1>'+TL().n+' Trainer</h1>'+(UPD?'<div class="card"><b>A new version is available</b><div class="mu" style="margin:6px 0 10px">Your progress stays as it is.</div><button class="btn" onclick="location.reload()">Update now</button></div>':'')+(SYN.tok&&SYN.gid?(SY.conf?conflictCard():'<div class="mu synst" style="margin:-6px 0 12px">'+synStatus()+'</div>'):'')+streakCard()+'<div class="card"><div class="mu">Due now</div><div style="font-size:44px;font-weight:700">'+due+'</div>';
   if(!due&&next)h+='<div class="mu">Next cards are due in '+rel(next)+'</div>';
   h+='<button class="btn" onclick="start()" '+(due?'':'disabled')+'>Start session</button></div>';
   h+=forecastCard(it,now,S.cards.filter(c=>c.w&&(S.sel==='all'||c.l===S.sel)).length);
@@ -431,10 +449,11 @@ function settingsView(){
   let h='<h1>Settings</h1>'+(SY.conf?conflictCard():'')+(UPD?'<div class="card"><b>A new version is available</b><button class="btn" onclick="location.reload()">Update now</button></div>':'');
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Word list</div><select onchange="S.sel=this.value===\'all\'?\'all\':+this.value;save();render()"><option value="all"'+(S.sel==='all'?' selected':'')+'>All lists</option>'+S.lists.map(l=>'<option value="'+l.id+'"'+(S.sel===l.id?' selected':'')+'>'+esc(l.name)+' ('+l.lang.toUpperCase()+', '+S.cards.filter(c=>c.l===l.id).length+')</option>').join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Direction</div><select onchange="S.dir=this.value;save();render()">'
-   +['both|Both directions','sd|Español → translation','ds|Translation → Español'].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
+   +['both|Both directions','sd|'+TL().a+' → translation','ds|Translation → '+TL().a].map(o=>{const p=o.split('|');return '<option value="'+p[0]+'"'+(S.dir===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Cards with several answers</div><select onchange="S.any=this.value===\'any\';save();render()"><option value="all"'+(S.any?'':' selected')+'>Type all answers</option><option value="any"'+(S.any?' selected':'')+'>One answer is enough</option></select><div class="mu" style="margin-top:8px">With "Type all answers", a card like diferente / distinto needs both. A dialect word such as {LatAm} can replace the word before it.</div></div>';
   h+='<div class="card"><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" style="width:auto" '+(S.snd===false?'':'checked ')+'onchange="S.snd=this.checked;save();if(this.checked)sfx(true)"><span>Play a quiet sound for right and wrong answers</span></label></div>';
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Daily goal for your streak</div><select onchange="S.goal=+this.value;save();render()">'+GOALS.map(n=>'<option value="'+n+'"'+((S.goal||10)===n?' selected':'')+'>'+n+' answers a day</option>').join('')+'</select><div class="mu" style="margin-top:8px">Answer this many cards in a day to keep your streak. A new day starts at 4 am.</div></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Language you are learning</div><select onchange="S.tl=this.value;S.accent=null;save();render()">'+Object.keys(TLS).map(k=>'<option value="'+k+'"'+(S.tl===k||(!S.tl&&k==='es')?' selected':'')+'>'+TLS[k].n+'</option>').join('')+'</select><div class="mu" style="margin-top:8px">This changes the keyboard letters, the voice and the labels. Words you already added stay as they are, so choose it before adding words. Each list has its own second language (Deutsch, English or Nederlands) on the Words tab.</div></div>';
   h+=speechCard();
   h+='<div class="card"><div class="mu" style="margin-bottom:8px">Design</div><select onchange="setTheme(this.value)">'+Object.keys(THEMES).map(k=>'<option value="'+k+'"'+((S.theme||'forest')===k?' selected':'')+'>'+THEMES[k].n+'</option>').join('')+'</select></div>';
   h+=syncCard();
@@ -450,7 +469,7 @@ function start(){
   Q={queue:q,total:q.length,done:0,right:0,st:'ask',g:0,val:''};
   render();
 }
-const KEYS='á é í ó ú ü ñ ¿ ¡'.split(' ');
+
 function quizView(){
   if(!Q.queue.length){
     return '<h1>Session finished</h1><div class="card"><div class="big">'+Q.right+' / '+Q.total+'</div><div class="mu lab">answered correctly on the first try</div><div class="mu" style="text-align:center;margin-top:10px">Today: '+Math.min(skv().n,S.goal||10)+' of '+(S.goal||10)+' answers · Streak: '+streakNow()+(streakNow()===1?' day':' days')+'</div><button class="btn" onclick="go(\'learn\')">Back</button></div>';
@@ -458,7 +477,7 @@ function quizView(){
   const it=Q.queue[0],es=it.d==='sd';
   const prompt=es?it.c.es:it.c.de,answer=es?it.c.de:it.c.es;
   let h='<div class="prog"><i style="width:'+(Q.done/Q.total*100)+'%"></i></div><div class="mu">'+Q.done+' of '+Q.total+(it.retry?' · second try':'')+' · Phase '+it.c[it.d].p+'</div>'+(Q.goalMsg?'<div class="fb ok" style="margin:8px 0">Daily goal reached. Streak: '+streakNow()+(streakNow()===1?' day':' days')+'</div>':'')+'<div class="card">';
-  h+='<div class="mu lab">'+(es?'Español → '+lname(it.c):lname(it.c)+' → Español')+'</div><div class="big">'+show(prompt)+'</div>'+(es?'<div class="lab">'+spkBtn('speakCard()')+'</div>':'');
+  h+='<div class="mu lab">'+(es?TL().a+' → '+lname(it.c):lname(it.c)+' → '+TL().a)+'</div><div class="big">'+show(prompt)+'</div>'+(es?'<div class="lab">'+spkBtn('speakCard()')+'</div>':'');
   if(Q.st==='ask'){
     if(Q.hint)h+='<div style="margin:0 0 10px;font-weight:600;color:var(--ac)">'+(Q.hint==='more'?'This card has more than one answer. Add the other one too.':'Almost there. Check your spelling and try once more.')+'</div>';
     h+='<input id="ans" value="'+(Q.hint?esc(Q.val):'')+'" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="Type the translation">';
@@ -475,7 +494,7 @@ function quizView(){
   return h+'</div>';
 }
 function keysRow(id){
-  return '<div class="keys">'+KEYS.map(k=>'<button onpointerdown="ins(event,\''+id+'\',\''+k+'\')">'+k+'</button>').join('')+'</div>';
+  return '<div class="keys">'+TL().keys.split(' ').map(k=>'<button onpointerdown="ins(event,\''+id+'\',\''+k+'\')">'+k+'</button>').join('')+'</div>';
 }
 function ins(e,id,ch){
   e.preventDefault();
@@ -522,7 +541,7 @@ function check(){
 }
 function promote(s){if(s.p<6){s.p++;s.due=dueIn(DAYS[s.p])}else s.due=dueIn(90)}
 // Every list has its own second language. The card text field is still called de, but it holds that language.
-const LN={de:'Deutsch',en:'English'};
+const LN={de:'Deutsch',en:'English',nl:'Nederlands'};
 function curList(){return S.lists.find(x=>x.id===S.view)}
 function lname(c){const l=S.lists.find(x=>x.id===c.l);return LN[l&&l.lang||'de']}
 function optLang(v){return Object.keys(LN).map(k=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+LN[k]+'</option>').join('')}
@@ -557,10 +576,10 @@ function wordsView(){
    +'<div class="mu" style="margin-top:12px;margin-bottom:6px">Second language of this list</div><select onchange="setLang(this.value)">'+optLang(curList().lang)+'</select>'
    +'<input id="nl" style="margin-top:14px" placeholder="New list name" autocorrect="off"><div class="row" style="margin-top:8px"><select id="nlang">'+optLang(curList().lang)+'</select><button class="btn sec" style="width:auto;margin-top:0;padding:12px 16px;white-space:nowrap" onclick="newList()">Create</button></div>'
    +'<button class="btn sec" style="color:var(--bad);border-color:var(--bad)" onclick="delList()">'+(delArm?'Tap again to delete the list and its words':(S.lists.length>1?'Delete this list':'Empty this list'))+'</button></div>'
-   +'<div class="card"><input id="nes" placeholder="Español" autocapitalize="off" autocorrect="off" spellcheck="false">'
+   +'<div class="card"><input id="nes" placeholder="'+TL().a+'" autocapitalize="off" autocorrect="off" spellcheck="false">'
    +keysRow('nes')+'<input id="nde" placeholder="'+LN[curList().lang]+' (alternatives with a slash)" autocorrect="off" spellcheck="false" style="margin-top:2px">'
    +'<button class="btn" onclick="add()">Add word</button></div>';
-  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: Spanish ; translation. Imported words are released a few per day (see the Learn tab), unless you tick the box below.</div><textarea id="bulk" placeholder="la mesa ; '+(curList().lang==='en'?'the table':'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="bnow" type="checkbox" style="width:auto">Make all of them available right away</label><button class="btn sec" onclick="bulk()">Import lines</button></div>';
+  h+='<div class="card"><div class="mu" style="margin-bottom:8px">Add many at once, one pair per line: '+TL().n+' ; translation. Imported words are released a few per day (see the Learn tab), unless you tick the box below.</div><textarea id="bulk" placeholder="'+(S.tl==='it'?'il tavolo':'la mesa')+' ; '+({en:'the table',nl:'de tafel'}[curList().lang]||'der Tisch')+'" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="bnow" type="checkbox" style="width:auto">Make all of them available right away</label><button class="btn sec" onclick="bulk()">Import lines</button></div>';
   h+='<div class="card">'+(l.length?l.map(c=>c.id===ed?editRow(c):'<div class="w"><div><b>'+show(c.es)+'</b><div class="mu">'+show(c.de)+(c.w?' · waiting':'')+'</div></div><div style="white-space:nowrap">'+spkBtn('speakId('+c.id+')')+'<button class="e" onclick="edit('+c.id+')">✎</button><button onclick="del('+c.id+')">✕</button></div></div>').join(''):'<div class="mu">No words yet.</div>')+'</div>';
   return h;
 }
@@ -604,7 +623,7 @@ function delList(){
 }
 
 // The course words are not part of this page. They are pasted in once on the Course tab and stored in this browser only.
-// Format: "# Unit name", then "## Section name", then lines like "Spanish ; German".
+// Format: "# Unit name", then "## Section name", then lines like "Spanish ; German" (or "Italian ; Dutch").
 let COURSE=[];
 function parseCourse(t){
   const us=[];let u=null,sec=null;
@@ -623,13 +642,13 @@ function parseCourse(t){
 function loadCourse(){COURSE=parseCourse(S.courseText)}
 function saveCourse(){
   const t=$('#ctext').value;
-  if(!parseCourse(t).length){$('#cmsg').textContent='No words found. Each line needs the form: Spanish ; German';return}
+  if(!parseCourse(t).length){$('#cmsg').textContent='No words found. Each line needs the form: '+TL().n+' ; translation';return}
   S.courseText=t;loadCourse();save();render();
 }
 function serializeCourse(us){return us.map(u=>'# '+u.u+'\n'+u.s.map(x=>'## '+x[0]+'\n'+x[1]).join('\n')).join('\n')+'\n'}
 function addCourse(){
   const t=$('#ctext').value,nu=parseCourse(t);
-  if(!nu.length){$('#cmsg').textContent='No words found. Each line needs the form: Spanish ; German';return}
+  if(!nu.length){$('#cmsg').textContent='No words found. Each line needs the form: '+TL().n+' ; translation';return}
   const have=new Set(COURSE.map(u=>u.u)),add=nu.filter(u=>!have.has(u.u)),skip=nu.length-add.length;
   if(!add.length){$('#cmsg').textContent='Nothing added. All '+nu.length+' units are already in your course.';return}
   S.courseText=(S.courseText?S.courseText.replace(/\s*$/,'\n'):'')+serializeCourse(add);
