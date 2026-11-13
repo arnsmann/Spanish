@@ -44,7 +44,7 @@ textarea{min-height:90px}
 .w:last-child{border:0}
 .w button{border:0;background:none;color:var(--bad);font-size:20px}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--nav);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav button{flex:1;padding:14px;border:0;background:none;font-weight:600;color:var(--mu)}
+nav button{flex:1;padding:14px 2px;font-size:15px;border:0;background:none;font-weight:600;color:var(--mu)}
 nav button.on{color:var(--ac)}
 .prog{height:6px;background:var(--bd);border-radius:3px;margin-bottom:6px}
 .prog i{display:block;height:100%;background:var(--ac);border-radius:3px}
@@ -58,11 +58,38 @@ body{background:transparent}
 body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--scene) center bottom/cover no-repeat}
 h1{display:flex;align-items:center;gap:10px;letter-spacing:.2px;min-height:44px}
 h1::before{content:'';width:32px;height:32px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate(-31.25,-178.52) scale(0.27)'%3E%3Cpath d='M153 755L149 771' stroke='%232f2a27' stroke-width='4.5' stroke-linecap='round'/%3E%3Cpath d='M187 755L191 771' stroke='%232f2a27' stroke-width='4.5' stroke-linecap='round'/%3E%3Cpath d='M170 760V772' stroke='%232f2a27' stroke-width='4.5' stroke-linecap='round'/%3E%3Ccircle cx='149' cy='774' r='3' fill='%23c9a24f'/%3E%3Ccircle cx='191' cy='774' r='3' fill='%23c9a24f'/%3E%3Ccircle cx='170' cy='775' r='3' fill='%23c9a24f'/%3E%3Cpath d='M143 718C138 742 147 762 170 764C193 762 202 742 197 718Z' fill='%232f2a27'/%3E%3Cpath d='M150 730C149 744 155 755 162 759' stroke='%23fff' stroke-opacity='.16' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath d='M141 710H199L197 725Q170 732 143 725Z' fill='%23c9b27a'/%3E%3Cpath d='M142 714Q170 719 198 714M143 721Q170 727 197 721' stroke='%231c1714' stroke-opacity='.55' stroke-width='.9' fill='none'/%3E%3Cellipse cx='154' cy='718.5' rx='4' ry='2.6' fill='none' stroke='%231c1714' stroke-opacity='.7' stroke-width='.9'/%3E%3Cellipse cx='186' cy='718.5' rx='4' ry='2.6' fill='none' stroke='%231c1714' stroke-opacity='.7' stroke-width='.9'/%3E%3Cpath d='M170 714.5L174.5 719L170 723.5L165.5 719Z' fill='none' stroke='%231c1714' stroke-opacity='.75' stroke-width='.9'/%3E%3Cellipse cx='170' cy='709' rx='29' ry='6' fill='%23d6dcd8'/%3E%3Cellipse cx='170' cy='709' rx='23.5' ry='4.3' fill='%231c1714' fill-opacity='.85'/%3E%3Cellipse cx='170' cy='708.5' rx='21' ry='3.4' fill='%236f8a4a'/%3E%3Cpath d='M177 708L195 676Q198 670 205 668' stroke='%23d6dcd8' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='188' cy='688' r='2.1' fill='%23d6dcd8'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+
+.seg{display:flex;gap:6px;margin:0 0 14px}
+.seg button{flex:1;padding:10px 4px;border-radius:10px;border:1px solid var(--bd);background:var(--card);font-weight:600;color:var(--mu)}
+.seg button.on{background:var(--ac);color:var(--on-ac);border-color:var(--ac)}
+.chip{border:1px solid var(--bd);background:var(--card);border-radius:18px;padding:7px 12px;font-size:14px;margin:3px 4px 3px 0;color:var(--tx)}
+.chip.on{background:var(--ac);color:var(--on-ac);border-color:var(--ac)}
+.gchips{margin:6px 0 4px}
+details.gd,details.gd2{padding:0}
+details.gd>summary,details.gd2>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+details.gd2>summary{flex-direction:row;align-items:center}
+details>summary::-webkit-details-marker{display:none}
+details.gd>summary::after,details.gd2>summary::after{content:'+';position:absolute;right:16px;color:var(--ac);font-size:20px;font-weight:700}
+details.gd[open]>summary::after,details.gd2[open]>summary::after{content:'\2212'}
+details.gd,details.gd2{position:relative}
+details.gd2{padding-bottom:0}
+details.gd2>.gt,details.gd2>div,details.gd2>table{margin:0 16px 14px}
+.gb{padding:0 16px 14px;font-size:15px;line-height:1.5}
+.gb p{margin:10px 0}
+.tw{overflow-x:auto;margin:8px 0}
+table.gt{width:100%;border-collapse:collapse;font-size:14px}
+table.gt th{text-align:left;color:var(--mu);font-weight:600;padding:5px 8px 5px 0;border-bottom:1px solid var(--bd);white-space:nowrap}
+table.gt td{padding:6px 8px 6px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+table.gt tr:last-child td{border-bottom:0}
+table.gt td.pc{color:var(--mu);white-space:nowrap}
+.irr{color:var(--dia);font-weight:600}
+.ex{margin:5px 0;padding-left:10px;border-left:2px solid var(--bd)}
+.ex .mu{display:block;font-size:13px}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button><button id="t-course" onclick="go('course')">Course</button><button id="t-settings" onclick="go('settings')">Settings</button></nav>
+<nav><button id="t-learn" onclick="go('learn')">Learn</button><button id="t-words" onclick="go('words')">Words</button><button id="t-course" onclick="go('course')">Course</button><button id="t-grammar" onclick="go('grammar')">Grammar</button><button id="t-settings" onclick="go('settings')">Settings</button></nav>
 <script>
 // Review gaps for each phase. A wrong answer sends the card back to phase 1 (10 minutes).
 const MIN=60000, DAY=864e5, INT=[0,10*MIN,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
@@ -185,7 +212,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202610171303';
+const BUILD='202611131307';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -293,13 +320,16 @@ function rel(ms){const m=Math.max(1,Math.round(ms/MIN));if(m<60)return m+' min';
 let tab='learn', Q=null;
 function go(t){tab=t;Q=null;delArm=false;ed=null;render()}
 function render(){
+  if(tab==='grammar'&&(S.tl||'es')!=='es')tab='learn';
+  $('#t-grammar').style.display=(S.tl||'es')==='es'?'':'none';
   applyTheme();
   $('#t-learn').className=tab==='learn'?'on':'';
   $('#t-words').className=tab==='words'?'on':'';
   $('#t-course').className=tab==='course'?'on':'';
+  $('#t-grammar').className=tab==='grammar'?'on':'';
   $('#t-settings').className=tab==='settings'?'on':'';
-  $('#app').innerHTML=tab==='words'?wordsView():tab==='course'?courseView():tab==='settings'?settingsView():(Q?quizView():homeView());
-  const f=$('#ans')||$('#re');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
+  $('#app').innerHTML=tab==='words'?wordsView():tab==='course'?courseView():tab==='settings'?settingsView():tab==='grammar'?grammarView():(Q?quizView():homeView());
+  const f=$('#ans')||$('#re')||$('#gin');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
 }
 
 // What goes to the cloud: everything except the pasted course text.
@@ -718,6 +748,710 @@ if(SYN.tok&&SYN.gid){
   booting=true;render();
   Promise.race([syncNow(false),new Promise(r=>setTimeout(r,6000))]).then(()=>{booting=false;render()});
 }else render();
+</script>
+<script>
+// ===== Spanish grammar: conjugation engine =====
+const GP=['yo','tú','él/ella/usted','nosotros','vosotros','ellos/ellas/ustedes'];
+const GIMP=['tú','usted','nosotros','vosotros','ustedes'];
+const GRP=['me','te','se','nos','os','se'];
+const GAUX={pres:['he','has','ha','hemos','habéis','han'],impf:['había','habías','había','habíamos','habíais','habían'],fut:['habré','habrás','habrá','habremos','habréis','habrán'],cond:['habría','habrías','habría','habríamos','habríais','habrían'],sprs:['haya','hayas','haya','hayamos','hayáis','hayan'],simp:['hubiera','hubieras','hubiera','hubiéramos','hubierais','hubieran']};
+// key, name, group, English hint
+const GT_LIST=[
+ ['pres','Presente','Indicativo'],
+ ['perf','Pretérito perfecto','Indicativo'],
+ ['pret','Pretérito indefinido','Indicativo'],
+ ['impf','Pretérito imperfecto','Indicativo'],
+ ['plusc','Pretérito pluscuamperfecto','Indicativo'],
+ ['fut','Futuro simple','Indicativo'],
+ ['futperf','Futuro perfecto','Indicativo'],
+ ['cond','Condicional simple','Indicativo'],
+ ['condperf','Condicional compuesto','Indicativo'],
+ ['sprs','Presente de subjuntivo','Subjuntivo'],
+ ['sperf','Pretérito perfecto de subjuntivo','Subjuntivo'],
+ ['simp','Imperfecto de subjuntivo','Subjuntivo'],
+ ['splus','Pluscuamperfecto de subjuntivo','Subjuntivo'],
+ ['impa','Imperativo afirmativo','Imperativo'],
+ ['impn','Imperativo negativo','Imperativo']
+];
+const GT_NAME={};GT_LIST.forEach(t=>GT_NAME[t[0]]=t[1]);
+
+// inf|English|German|flags
+// flags: ie ue i (stem change), iep (present only), ia ua (accented stem), yo= ss= is= ps= fut= tu= nos= part= ger=
+//        pres= pret= impf= subj= (full overrides, comma separated)
+const GV_RAW=`hablar|to speak|sprechen
+trabajar|to work|arbeiten
+estudiar|to study|lernen
+comprar|to buy|kaufen
+caminar|to walk|gehen
+cantar|to sing|singen
+bailar|to dance|tanzen
+cocinar|to cook|kochen
+escuchar|to listen|zuhören
+mirar|to look at|anschauen
+necesitar|to need|brauchen
+tomar|to take, to drink|nehmen, trinken
+viajar|to travel|reisen
+usar|to use|benutzen
+ayudar|to help|helfen
+llamar|to call|rufen, anrufen
+llegar|to arrive|ankommen
+buscar|to look for|suchen
+tocar|to touch, to play|berühren, spielen
+pagar|to pay|bezahlen
+practicar|to practise|üben
+explicar|to explain|erklären
+sacar|to take out|herausnehmen
+apagar|to switch off|ausschalten
+esperar|to wait, to hope|warten, hoffen
+olvidar|to forget|vergessen
+preguntar|to ask|fragen
+entrar|to enter|eintreten
+terminar|to finish|beenden
+limpiar|to clean|putzen
+lavar|to wash|waschen
+nadar|to swim|schwimmen
+pasar|to pass, to spend|vorbeigehen, verbringen
+dejar|to leave, to let|lassen
+llevar|to carry, to wear|tragen
+mandar|to send|schicken
+cambiar|to change|ändern
+ganar|to win, to earn|gewinnen, verdienen
+pintar|to paint|malen
+enseñar|to teach, to show|unterrichten, zeigen
+desayunar|to have breakfast|frühstücken
+cenar|to have dinner|zu Abend essen
+andar|to walk|laufen|ps=anduv
+estar|to be (state, place)|sein|pres=estoy,estás,está,estamos,estáis,están ps=estuv subj=esté,estés,esté,estemos,estéis,estén
+dar|to give|geben|pres=doy,das,da,damos,dais,dan pret=di,diste,dio,dimos,disteis,dieron subj=dé,des,dé,demos,deis,den
+empezar|to begin|anfangen|ie
+comenzar|to start|beginnen|ie
+pensar|to think|denken|ie
+cerrar|to close|schließen|ie
+despertar|to wake up (someone)|wecken|ie
+sentar|to seat|setzen|ie
+negar|to deny|verneinen|ie
+recomendar|to recommend|empfehlen|ie
+jugar|to play|spielen|ue
+recordar|to remember|sich erinnern|ue
+contar|to count, to tell|zählen, erzählen|ue
+encontrar|to find|finden|ue
+almorzar|to have lunch|zu Mittag essen|ue
+mostrar|to show|zeigen|ue
+costar|to cost|kosten|ue
+volar|to fly|fliegen|ue
+probar|to try, to test|probieren|ue
+soñar|to dream|träumen|ue
+acostar|to put to bed|ins Bett legen|ue
+colgar|to hang|aufhängen|ue
+enviar|to send|senden|ia
+continuar|to continue|fortfahren|ua
+esquiar|to ski|Ski fahren|ia
+comer|to eat|essen
+beber|to drink|trinken
+aprender|to learn|lernen
+leer|to read|lesen
+creer|to believe|glauben
+correr|to run|rennen
+vender|to sell|verkaufen
+comprender|to understand|verstehen
+deber|to owe, must|müssen, schulden
+meter|to put in|hineinlegen
+temer|to fear|fürchten
+responder|to answer|antworten
+romper|to break|zerbrechen|part=roto
+proteger|to protect|schützen
+escoger|to choose|auswählen
+coger|to take, to catch|nehmen, fangen
+vencer|to defeat|besiegen
+conocer|to know (a person)|kennen
+parecer|to seem|scheinen
+ofrecer|to offer|anbieten
+agradecer|to thank|danken
+merecer|to deserve|verdienen
+nacer|to be born|geboren werden
+crecer|to grow|wachsen
+ver|to see|sehen|pres=veo,ves,ve,vemos,veis,ven pret=vi,viste,vio,vimos,visteis,vieron is=ve part=visto
+saber|to know (a fact)|wissen|yo=sé ps=sup fut=sabr ss=sep
+querer|to want, to love|wollen, lieben|ie ps=quis fut=querr
+poder|to be able|können|ue ps=pud fut=podr ger=pudiendo
+tener|to have|haben|yo=tengo ie ps=tuv fut=tendr tu=ten
+poner|to put|setzen, stellen, legen|yo=pongo ps=pus fut=pondr part=puesto tu=pon
+hacer|to do, to make|machen, tun|yo=hago ps=hic fut=har part=hecho tu=haz
+caber|to fit|hineinpassen|yo=quepo ps=cup fut=cabr
+valer|to be worth|wert sein|yo=valgo fut=valdr
+traer|to bring|bringen|yo=traigo ps=traj
+caer|to fall|fallen|yo=caigo
+oler|to smell|riechen|ue
+volver|to return|zurückkehren|ue part=vuelto
+devolver|to give back|zurückgeben|ue part=devuelto
+resolver|to solve|lösen|ue part=resuelto
+mover|to move|bewegen|ue
+perder|to lose|verlieren|ie
+entender|to understand|verstehen|ie
+defender|to defend|verteidigen|ie
+encender|to switch on|anzünden, einschalten|ie
+doler|to hurt|wehtun|ue
+llover|to rain|regnen|ue
+haber|to have (auxiliary)|haben (Hilfsverb)|pres=he,has,ha,hemos,habéis,han ps=hub fut=habr ss=hay
+ser|to be (identity)|sein|pres=soy,eres,es,somos,sois,son pret=fui,fuiste,fue,fuimos,fuisteis,fueron impf=era,eras,era,éramos,erais,eran ss=se tu=sé
+mantener|to maintain|aufrechterhalten|yo=mantengo ie ps=mantuv fut=mantendr tu=mantén
+obtener|to obtain|erhalten|yo=obtengo ie ps=obtuv fut=obtendr tu=obtén
+contener|to contain|enthalten|yo=contengo ie ps=contuv fut=contendr tu=contén
+componer|to compose|komponieren|yo=compongo ps=compus fut=compondr part=compuesto tu=compón
+proponer|to propose|vorschlagen|yo=propongo ps=propus fut=propondr part=propuesto tu=propón
+suponer|to suppose|annehmen|yo=supongo ps=supus fut=supondr part=supuesto tu=supón
+vivir|to live|leben
+escribir|to write|schreiben|part=escrito
+abrir|to open|öffnen|part=abierto
+recibir|to receive|erhalten
+subir|to go up|hinaufgehen
+partir|to leave, to split|abreisen, teilen
+decidir|to decide|entscheiden
+permitir|to allow|erlauben
+existir|to exist|existieren
+sufrir|to suffer|leiden
+discutir|to discuss, to argue|diskutieren
+describir|to describe|beschreiben|part=descrito
+cubrir|to cover|bedecken|part=cubierto
+descubrir|to discover|entdecken|part=descubierto
+ir|to go|gehen, fahren|pres=voy,vas,va,vamos,vais,van pret=fui,fuiste,fue,fuimos,fuisteis,fueron impf=iba,ibas,iba,íbamos,ibais,iban ss=vay ger=yendo part=ido tu=ve nos=vamos
+salir|to go out, to leave|ausgehen, abfahren|yo=salgo fut=saldr tu=sal
+venir|to come|kommen|yo=vengo iep ps=vin fut=vendr tu=ven
+decir|to say, to tell|sagen|yo=digo i ps=dij fut=dir part=dicho tu=di
+convenir|to suit|passen|yo=convengo iep ps=convin fut=convendr tu=convén
+dormir|to sleep|schlafen|ue
+morir|to die|sterben|ue part=muerto
+sentir|to feel|fühlen|ie
+preferir|to prefer|bevorzugen|ie
+mentir|to lie|lügen|ie
+divertir|to amuse|unterhalten|ie
+sugerir|to suggest|vorschlagen|ie
+pedir|to ask for, to order|bitten, bestellen|i
+servir|to serve|dienen, servieren|i
+repetir|to repeat|wiederholen|i
+seguir|to follow, to continue|folgen, weitermachen|i
+conseguir|to get, to manage|erreichen|i
+elegir|to choose|wählen|i
+corregir|to correct|korrigieren|i
+vestir|to dress|anziehen|i
+competir|to compete|konkurrieren|i
+despedir|to fire, to say goodbye|entlassen, verabschieden|i
+reír|to laugh|lachen|pres=río,ríes,ríe,reímos,reís,ríen pret=reí,reíste,rio,reímos,reísteis,rieron ger=riendo subj=ría,rías,ría,riamos,riáis,rían fut=reir
+sonreír|to smile|lächeln|pres=sonrío,sonríes,sonríe,sonreímos,sonreís,sonríen pret=sonreí,sonreíste,sonrió,sonreímos,sonreísteis,sonrieron ger=sonriendo subj=sonría,sonrías,sonría,sonriamos,sonriáis,sonrían fut=sonreir
+construir|to build|bauen
+incluir|to include|einschließen
+huir|to flee|fliehen
+distribuir|to distribute|verteilen
+oír|to hear|hören|pres=oigo,oyes,oye,oímos,oís,oyen fut=oir
+conducir|to drive|fahren, lenken|ps=conduj
+traducir|to translate|übersetzen|ps=traduj
+producir|to produce|produzieren|ps=produj
+reducir|to reduce|reduzieren|ps=reduj
+levantarse|to get up|aufstehen
+acostarse|to go to bed|ins Bett gehen|ue
+llamarse|to be called|heißen
+sentarse|to sit down|sich setzen|ie
+ducharse|to take a shower|duschen
+vestirse|to get dressed|sich anziehen|i
+lavarse|to wash oneself|sich waschen
+despertarse|to wake up|aufwachen|ie
+divertirse|to have fun|sich amüsieren|ie
+quedarse|to stay|bleiben
+sentirse|to feel (oneself)|sich fühlen|ie
+irse|to leave, to go away|weggehen|pres=voy,vas,va,vamos,vais,van pret=fui,fuiste,fue,fuimos,fuisteis,fueron impf=iba,ibas,iba,íbamos,ibais,iban ss=vay ger=yendo part=ido tu=ve nos=vamos
+ponerse|to put on, to become|anziehen, werden|yo=pongo ps=pus fut=pondr part=puesto tu=pon`;
+
+function gparse(line){
+  const q=line.split('|'),o={inf:q[0],en:q[1],de:q[2],f:{}};
+  (q[3]||'').split(' ').filter(Boolean).forEach(t=>{const i=t.indexOf('=');if(i<0)o.f[t]=true;else o.f[t.slice(0,i)]=t.slice(i+1)});
+  return o;
+}
+const GACC={a:'á',e:'é',i:'í',o:'ó',u:'ú'};
+function gacc(s){for(let i=s.length-1;i>=0;i--){if(GACC[s[i]])return s.slice(0,i)+GACC[s[i]]+s.slice(i+1)}return s}
+// stem change: ie, ue, i
+function gchg(s,k){
+  if(k==='ie'){let i=s.lastIndexOf('e');if(i<0)i=s.lastIndexOf('i');return s.slice(0,i)+'ie'+s.slice(i+1)}
+  if(k==='ue'){let i=s.lastIndexOf('o');if(i<0)i=s.lastIndexOf('u');const r=s.slice(0,i)+'ue'+s.slice(i+1);return r.startsWith('ue')?'h'+r:r}
+  if(k==='i'){const i=s.lastIndexOf('e');return s.slice(0,i)+'i'+s.slice(i+1)}
+  return s;
+}
+// second stem change used in -ir verbs (pidió, durmió, sintiendo, durmamos)
+function gchg2(s,k){
+  if(k==='ie'||k==='i'){const i=s.lastIndexOf('e');return i<0?s:s.slice(0,i)+'i'+s.slice(i+1)}
+  if(k==='ue'){const i=s.lastIndexOf('o');return i<0?s:s.slice(0,i)+'u'+s.slice(i+1)}
+  return s;
+}
+// join a stem and an ending, with the usual spelling changes (c to qu, g to j, ...)
+function gjoin(st,e,V){
+  const c=e[0];
+  if(V.type==='ar'&&(c==='e'||c==='é')){
+    if(V.inf2.endsWith('guar')&&st.endsWith('gu'))st=st.slice(0,-1)+'ü';
+    else if(st.endsWith('c'))st=st.slice(0,-1)+'qu';
+    else if(st.endsWith('g'))st=st+'u';
+    else if(st.endsWith('z'))st=st.slice(0,-1)+'c';
+  }else if(V.type!=='ar'&&(c==='a'||c==='o'||c==='á'||c==='ó')){
+    if(V.inf2.endsWith('guir')&&st.endsWith('gu'))st=st.slice(0,-1);
+    else if(st.endsWith('g')&&/(ger|gir)$/.test(V.inf2))st=st.slice(0,-1)+'j';
+    else if(st.endsWith('c')&&/[^aeiou]c(er|ir)$/.test(V.inf2))st=st.slice(0,-1)+'z';
+  }
+  return st+e;
+}
+function gseSwap(w){return w.replace(/ramos$/,'semos').replace(/rais$/,'seis').replace(/ras$/,'ses').replace(/ran$/,'sen').replace(/ra$/,'se')}
+
+function gconj(v){
+  const f=v.f,refl=/se$/.test(v.inf),base=refl?v.inf.slice(0,-2):v.inf,inf2=base.replace(/í/g,'i'),type=inf2.slice(-2),stem=inf2.slice(0,-2),V={type,inf2};
+  const uy=type==='ir'&&/[^gq]uir$/.test(inf2);
+  const vst=type!=='ar'&&(/[aeo]$/.test(stem)||uy);
+  const sc=f.ie?'ie':f.ue?'ue':f.i?'i':f.iep?'ie':null;
+  const sc2=type==='ir'&&sc&&!f.iep;
+  const mid=[0,1,2,5];
+  // present
+  const PE={ar:['o','as','a','amos','áis','an'],er:['o','es','e','emos','éis','en'],ir:['o','es','e','imos','ís','en']}[type];
+  let pres;
+  if(f.pres)pres=f.pres.split(',');
+  else pres=PE.map((e,p)=>{
+    if(p===0&&f.yo)return f.yo;
+    let s=stem;
+    if(mid.includes(p)){
+      if(sc)s=gchg(s,sc);
+      if(f.ia||f.ua)s=gacc(s);
+      if(uy)s+='y';
+    }
+    if(p===0&&type!=='ar'&&!sc&&/[aeiou]c$/.test(stem))return stem.slice(0,-1)+'zco';
+    return gjoin(s,e,V);
+  });
+  // preterite
+  let pret;
+  if(f.pret)pret=f.pret.split(',');
+  else if(f.ps){
+    const ps=f.ps,ends=['e','iste','o','imos','isteis',ps.endsWith('j')?'eron':'ieron'];
+    pret=ends.map(e=>(ps==='hic'&&e==='o'?'hiz':ps)+e);
+  }else if(type==='ar'){
+    pret=['é','aste','ó','amos','asteis','aron'].map(e=>gjoin(stem,e,V));
+  }else if(uy){
+    pret=['í','iste','yó','imos','isteis','yeron'].map(e=>stem+e);
+  }else if(vst){
+    pret=['í','íste','yó','ímos','ísteis','yeron'].map(e=>stem+e);
+  }else{
+    pret=['í','iste','ió','imos','isteis','ieron'].map((e,p)=>(sc2&&(p===2||p===5)?gchg2(stem,sc):stem)+e);
+  }
+  // imperfect
+  const impf=f.impf?f.impf.split(','):(type==='ar'?['aba','abas','aba','ábamos','abais','aban'].map(e=>stem+e):['ía','ías','ía','íamos','íais','ían'].map(e=>(f.is||stem)+e));
+  // future and conditional
+  const fs=f.fut||inf2;
+  const fut=['é','ás','á','emos','éis','án'].map(e=>fs+e);
+  const cond=['ía','ías','ía','íamos','íais','ían'].map(e=>fs+e);
+  // participle and gerund
+  const part=f.part||(vst?(uy?stem+'ido':stem+'ído'):stem+(type==='ar'?'ado':'ido'));
+  const ger=f.ger||(type==='ar'?stem+'ando':vst?stem+'yendo':(type==='ir'&&sc?gchg2(stem,sc):stem)+'iendo');
+  // subjunctive present
+  let sprs;
+  if(f.subj)sprs=f.subj.split(',');
+  else{
+    const SE=type==='ar'?['e','es','e','emos','éis','en']:['a','as','a','amos','áis','an'];
+    const ys=f.ss||pres[0].slice(0,-1);
+    sprs=SE.map((e,p)=>{
+      let s=ys;
+      if(p===3||p===4){
+        if(f.ss)s=f.ss;
+        else if(f.ia||f.ua)s=stem;
+        else if(f.yo)s=ys;
+        else if(sc2)s=gchg2(stem,sc);
+        else if(sc)s=stem;
+        else s=ys;
+      }
+      return gjoin(s,e,V);
+    });
+  }
+  // imperfect subjunctive (-ra forms)
+  const b=pret[5].slice(0,-3);
+  const simp=[b+'ra',b+'ras',b+'ra',gacc(b)+'ramos',b+'rais',b+'ran'];
+  const T={pres,pret,impf,fut,cond,sprs,simp};
+  T.perf=GAUX.pres.map(a=>a+' '+part);
+  T.plusc=GAUX.impf.map(a=>a+' '+part);
+  T.futperf=GAUX.fut.map(a=>a+' '+part);
+  T.condperf=GAUX.cond.map(a=>a+' '+part);
+  T.sperf=GAUX.sprs.map(a=>a+' '+part);
+  T.splus=GAUX.simp.map(a=>a+' '+part);
+  T.impa=[f.tu||pres[2],sprs[2],f.nos||sprs[3],base.slice(0,-1)+'d',sprs[5]];
+  T.impn=[1,2,3,4,5].map(i=>'no '+sprs[i]);
+  if(refl){
+    ['pres','pret','impf','fut','cond','sprs','simp','perf','plusc','futperf','condperf','sperf','splus'].forEach(k=>T[k]=T[k].map((x,p)=>GRP[p]+' '+x));
+    T.impn=[1,2,3,4,5].map(i=>'no '+GRP[i]+' '+sprs[i]);
+    T.impa=null;
+  }
+  return {inf:v.inf,part,ger,T};
+}
+
+const GV=[],GVM={};
+GV_RAW.split('\n').forEach(l=>{const v=gparse(l);GV.push(v);GVM[v.inf]=v});
+GV.forEach(v=>{
+  const c=gconj(v),r=gconj({inf:v.inf,f:{}});
+  v.irr=JSON.stringify(c.T)!==JSON.stringify(r.T)||c.part!==r.part||c.ger!==r.ger;
+  v.refl=/se$/.test(v.inf);
+});
+// any typed infinitive: known verb or a regular guess
+function gfind(s){
+  s=(s||'').trim().toLowerCase();
+  if(GVM[s])return {v:GVM[s],known:true};
+  if(/^[a-zñáéíóúü]{2,}(ar|er|ir|ír)(se)?$/.test(s))return {v:{inf:s,en:'',de:'',f:{},irr:false,refl:/se$/.test(s)},known:false};
+  return null;
+}
+function gplain(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ñ/g,'n')}
+
+// ===== Spanish grammar: reference topics =====
+function gE(es,en){return '<div class="ex"><i>'+es+'</i> <span class="mu">'+en+'</span></div>'}
+function gTbl(head,rows){
+  return '<div class="tw"><table class="gt"><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(i===0?' class="pc"':'')+'>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function gModel(tk,vs){
+  vs=vs||['hablar','comer','vivir'];
+  const cs=vs.map(x=>gconj(GVM[x]).T[tk]),imp=tk==='impa'||tk==='impn',pl=imp?GIMP:GP;
+  return gTbl([''].concat(vs),pl.map((p,i)=>[p].concat(cs.map(c=>c[i]))));
+}
+function gTopics(){
+  const T=[];
+  const add=(id,title,sub,html)=>T.push({id,title,sub,html});
+
+  add('over','All tenses at a glance','Which tense for what','<p>Every tense in one table. Open the topics below for forms, rules and examples.</p>'+gTbl(['Tense','Main use','Example'],[
+   ['Presente','Now, habits, facts, near future','Hablo con Ana.'],
+   ['Pretérito perfecto','Past that connects to now (Spain), experiences','He hablado con Ana.'],
+   ['Pretérito indefinido','Finished events, a sequence of actions','Ayer hablé con Ana.'],
+   ['Pretérito imperfecto','Habits, descriptions, background in the past','Hablaba con Ana cada día.'],
+   ['Pluscuamperfecto','Before another past moment','Ya había hablado con ella.'],
+   ['Futuro simple','Plans, predictions, guesses about now','Hablaré con Ana.'],
+   ['Futuro perfecto','Done by a future moment, guess about the past','Mañana ya habré hablado con ella.'],
+   ['Condicional simple','Would, polite requests, advice','Hablaría con Ana.'],
+   ['Condicional compuesto','Would have','Habría hablado con Ana.'],
+   ['Subjuntivo presente','Wishes, doubts, emotions, after que','Quiero que hables con Ana.'],
+   ['Subjuntivo perfecto','Same, but the action is already done','Espero que hayas hablado con Ana.'],
+   ['Subjuntivo imperfecto','Same in the past, unreal wishes, si clauses','Quería que hablaras con Ana.'],
+   ['Subjuntivo pluscuamperfecto','Unreal past','Si hubiera hablado con ella...'],
+   ['Imperativo','Commands and invitations','¡Habla con Ana!']
+  ]));
+
+  add('pres','Presente','Regular, stem changes, irregular yo','<p>Used for what is true now, habits, general facts and the near future.</p>'+gModel('pres')+
+   '<p><b>Stem changes (the boot).</b> In yo, tú, él and ellos the stem vowel changes. Nosotros and vosotros keep the normal stem. There are three patterns: e to ie, o to ue, e to i.</p>'+gModel('pres',['pensar','poder','pedir'])+
+   '<p>Other verbs with the pattern: querer, empezar, cerrar, entender, perder (ie); contar, encontrar, volver, dormir, jugar (ue); servir, repetir, seguir, vestir (i).</p>'+
+   '<p><b>Irregular yo forms.</b> Many verbs are regular except in yo: tengo, vengo, hago, pongo, salgo, traigo, caigo, valgo, digo, oigo, veo, sé, doy, voy, estoy, soy, conozco, parezco, traduzco. Verbs ending in ger/gir change g to j: escojo, elijo, dirijo.</p>'+
+   '<p><b>Very irregular.</b></p>'+gModel('pres',['ser','estar','ir'])+
+   '<p><b>Uses.</b></p>'+gE('Estudio física en Bonn.','I study physics in Bonn.')+gE('Siempre me levanto a las siete.','I always get up at seven.')+gE('Mañana voy al médico.','Tomorrow I am going to the doctor (near future).')+gE('Llevo tres años aprendiendo español.','I have been learning Spanish for three years.')+
+   '<p class="mu">Signal words: ahora, hoy, siempre, normalmente, todos los días, a veces.</p>');
+
+  add('perf','Pretérito perfecto','he hablado, has comido','<p>Formed with the present of <b>haber</b> plus the participle. The two parts are never separated: <i>Todavía no he comido.</i></p>'+gModel('perf',['hablar'])+
+   '<p><b>Participle:</b> -ar becomes -ado (hablado), -er and -ir become -ido (comido, vivido).</p>'+
+   '<p><b>Irregular participles:</b></p>'+gTbl(['Infinitive','Participle','Infinitive','Participle'],[['abrir','abierto','poner','puesto'],['cubrir','cubierto','resolver','resuelto'],['decir','dicho','romper','roto'],['escribir','escrito','ver','visto'],['hacer','hecho','volver','vuelto'],['morir','muerto','describir','descrito']])+
+   '<p>Compounds follow the same pattern: descubrir descubierto, devolver devuelto, deshacer deshecho, componer compuesto.</p>'+
+   '<p><b>Uses.</b> A past action connected to the present: a time period that is not over (hoy, esta semana, este año), life experiences, recent news. In much of Latin America people use the indefinido for most of this.</p>'+
+   gE('Hoy he trabajado mucho.','Today I have worked a lot.')+gE('¿Has estado alguna vez en México?','Have you ever been to Mexico?')+gE('Todavía no hemos comido.','We have not eaten yet.')+
+   '<p class="mu">Signal words: hoy, esta mañana, esta semana, este año, ya, todavía no, alguna vez, nunca, últimamente.</p>');
+
+  add('pret','Pretérito indefinido','Finished events in the past','<p>Used for completed actions at a specific time, for sequences of events, and for how long something lasted.</p>'+gModel('pret')+
+   '<p><b>Spelling in yo:</b> c becomes qu (busqué), g becomes gu (pagué), z becomes c (empecé).</p>'+
+   '<p><b>Third person with y:</b> when the stem ends in a vowel, i becomes y: leyó, leyeron, creyó, cayó, oyó, construyó, huyó.</p>'+
+   '<p><b>-ir stem changers</b> change in the third person only: e to i, o to u.</p>'+gModel('pret',['pedir','dormir','sentir'])+
+   '<p><b>Strong preterites.</b> These have an irregular stem and no accents. Endings: -e, -iste, -o, -imos, -isteis, -ieron (after j: -eron).</p>'+
+   gTbl(['Infinitive','Stem','yo','él','ellos'],[['tener','tuv','tuve','tuvo','tuvieron'],['estar','estuv','estuve','estuvo','estuvieron'],['andar','anduv','anduve','anduvo','anduvieron'],['poder','pud','pude','pudo','pudieron'],['poner','pus','puse','puso','pusieron'],['saber','sup','supe','supo','supieron'],['caber','cup','cupe','cupo','cupieron'],['querer','quis','quise','quiso','quisieron'],['venir','vin','vine','vino','vinieron'],['hacer','hic','hice','hizo','hicieron'],['decir','dij','dije','dijo','dijeron'],['traer','traj','traje','trajo','trajeron'],['conducir','conduj','conduje','condujo','condujeron']])+
+   '<p><b>Completely irregular:</b></p>'+gModel('pret',['ser','ir','dar','ver'])+
+   '<p class="mu">Ser and ir have identical forms in the indefinido. Context tells you which one it is: <i>Fue al cine</i> (he went), <i>Fue un día genial</i> (it was).</p>'+
+   '<p><b>Uses.</b></p>'+gE('Ayer llegué a las ocho y cené con Ana.','Yesterday I arrived at eight and had dinner with Ana.')+gE('Viví en Madrid tres años.','I lived in Madrid for three years.')+gE('En 2022 terminé el bachillerato.','In 2022 I finished school.')+
+   '<p class="mu">Signal words: ayer, anoche, el año pasado, hace dos días, en 2020, de repente, una vez, entonces, luego.</p>');
+
+  add('impf','Pretérito imperfecto','Habits and background in the past','<p>Used for habits, descriptions, feelings, age, time and weather in the past, and for actions in progress.</p>'+gModel('impf')+
+   '<p><b>Only three irregular verbs:</b></p>'+gModel('impf',['ser','ir','ver'])+
+   '<p><b>Uses.</b></p>'+gE('De niño jugaba al tenis todos los días.','As a child I played tennis every day.')+gE('Era un día frío y llovía.','It was a cold day and it was raining.')+gE('Tenía veinte años cuando me mudé.','I was twenty when I moved.')+gE('Mientras comía, leía el periódico.','While I ate, I read the newspaper.')+
+   '<p class="mu">Signal words: siempre, a menudo, cada día, normalmente, de niño, mientras, antes, de joven, todos los veranos.</p>');
+
+  add('vs','Indefinido or imperfecto?','The classic decision','<p>Think of a film. The <b>imperfecto</b> is the setting and the background. The <b>indefinido</b> is the events that move the story forward.</p>'+gTbl(['Imperfecto','Indefinido'],[['Habit, repeated: <i>Iba al club cada día.</i>','One time, finished: <i>Fui al club ayer.</i>'],['Description, feelings: <i>Hacía sol, estaba contento.</i>','Change or reaction: <i>Se puso contento.</i>'],['Action in progress: <i>Leía cuando sonó el teléfono.</i>','Interrupting event: <i>Sonó el teléfono.</i>'],['Age, time, weather: <i>Eran las tres.</i>','Exact duration: <i>Viví allí dos años.</i>']])+
+   '<p>Both in one sentence:</p>'+gE('Cuando llegué, mi hermana dormía.','When I arrived, my sister was sleeping.')+gE('Estaba en casa cuando me llamó Ana.','I was at home when Ana called me.')+
+   '<p><b>Verbs that change meaning:</b></p>'+gTbl(['Verb','Imperfecto','Indefinido'],[['saber','sabía: I knew','supe: I found out'],['conocer','conocía: I knew (a person)','conocí: I met'],['querer','quería: I wanted','quise: I tried; no quise: I refused'],['poder','podía: I was able','pude: I managed to']]));
+
+  add('plusc','Pretérito pluscuamperfecto','había hablado','<p>Formed with the imperfect of <b>haber</b> plus the participle. It describes an action that happened before another moment in the past.</p>'+gModel('plusc',['hablar'])+gE('Cuando llegué, ya se había ido.','When I arrived, he had already left.')+gE('Nunca había visto el mar.','I had never seen the sea.')+gE('Me dijo que había terminado.','He told me that he had finished.')+'<p class="mu">Signal words: ya, todavía no, nunca, antes de, cuando.</p>');
+
+  add('fut','Futuro simple','hablaré, tendré','<p>Add the endings to the <b>whole infinitive</b>. The same endings are used for all verbs.</p>'+gModel('fut')+
+   '<p><b>Irregular stems</b> (endings stay the same):</p>'+gTbl(['Infinitive','Stem','Infinitive','Stem'],[['tener','tendr','poder','podr'],['venir','vendr','querer','querr'],['poner','pondr','saber','sabr'],['salir','saldr','haber','habr'],['valer','valdr','caber','cabr'],['hacer','har','decir','dir']])+
+   '<p><b>Uses.</b> Plans and predictions, promises, and guesses about the present.</p>'+gE('Mañana lloverá en el norte.','Tomorrow it will rain in the north.')+gE('Te llamaré luego.','I will call you later.')+gE('¿Dónde estará Ana? Estará en casa.','Where could Ana be? She is probably at home.')+
+   '<p><b>Near future with ir a:</b> <i>voy a estudiar, vas a ver, va a llover</i>. It is the usual way to talk about plans in spoken Spanish.</p>'+
+   '<p class="mu">Signal words: mañana, el año que viene, pronto, dentro de dos días, algún día.</p>');
+
+  add('futperf','Futuro perfecto','habré hablado','<p>Future of <b>haber</b> plus the participle. It means that something will be finished by a certain future moment, or it guesses about the past.</p>'+gModel('futperf',['hablar'])+gE('Para mañana ya habré terminado.','By tomorrow I will have finished.')+gE('Habrá llegado ya.','He has probably arrived already.')+'<p class="mu">Signal words: para entonces, antes de, dentro de, ya.</p>');
+
+  add('cond','Condicional simple','hablaría, tendría','<p>Same stem as the future, with the endings of the imperfect of -er/-ir verbs.</p>'+gModel('cond')+
+   '<p>Irregular stems are the same as in the future: tendría, podría, haría, diría, saldría, vendría, querría, sabría.</p>'+
+   '<p><b>Uses.</b></p>'+gE('Me gustaría un café.','I would like a coffee.')+gE('¿Podrías ayudarme?','Could you help me?')+gE('Yo que tú, hablaría con ella.','If I were you, I would talk to her.')+gE('Dijo que vendría mañana.','He said he would come tomorrow.')+gE('Serían las tres cuando llegó.','It must have been three when he arrived.')+
+   '<p class="mu">Often used with deber, poder, querer for polite or soft statements: <i>Deberías descansar.</i></p>');
+
+  add('condperf','Condicional compuesto','habría hablado','<p>Conditional of <b>haber</b> plus the participle. It means would have.</p>'+gModel('condperf',['hablar'])+gE('Yo habría hecho lo mismo.','I would have done the same.')+gE('Me habría gustado ir.','I would have liked to go.')+gE('Si hubiera sabido, habría venido.','If I had known, I would have come.'));
+
+  add('sprs','Subjuntivo presente','Wishes, doubts, emotions','<p><b>Formation.</b> Take the yo form of the present, drop the -o, and add the opposite vowel: -ar verbs take -e, -er and -ir verbs take -a.</p>'+gModel('sprs')+
+   '<p>This explains the irregulars: tener (tengo) gives tenga, conocer (conozco) gives conozca, decir (digo) gives diga, hacer (hago) gives haga. Stem changers keep the boot: pensar gives piense but pensemos. In -ir verbs nosotros also changes: durmamos, pidamos, sintamos.</p>'+
+   '<p><b>Irregular:</b></p>'+gModel('sprs',['ser','estar','ir'])+
+   gTbl(['Infinitive','Subjunctive'],[['haber','haya, hayas, haya, hayamos, hayáis, hayan'],['saber','sepa, sepas, sepa, sepamos, sepáis, sepan'],['dar','dé, des, dé, demos, deis, den'],['ver','vea, veas, vea, veamos, veáis, vean']])+
+   '<p><b>When to use it.</b> When there are two parts joined by <b>que</b> with different subjects, and the first part expresses something other than a fact. Think of WEIRDO:</p>'+
+   gTbl(['','Trigger','Example'],[['W','Wishes, wants: querer, desear, esperar, ojalá','Quiero que vengas.'],['E','Emotions: alegrarse, temer, me gusta que','Me alegro de que estés aquí.'],['I','Impersonal expressions: es importante que, es posible que','Es importante que estudies.'],['R','Recommendations, orders, requests: pedir, aconsejar, sugerir, permitir','Te pido que me ayudes.'],['D','Doubt, denial: dudar, no creer, no pensar, no es verdad que','No creo que sea fácil.'],['O','Ojalá','Ojalá llueva mañana.']])+
+   '<p><b>Compare:</b></p>'+gE('Creo que viene.','I think he is coming. (fact, indicative)')+gE('No creo que venga.','I do not think he is coming. (doubt, subjunctive)')+
+   '<p><b>Same subject means infinitive:</b> <i>Quiero comer</i> but <i>Quiero que comas</i>.</p>'+
+   '<p><b>Conjunctions that always take the subjunctive:</b> para que, antes de que, sin que, a menos que, con tal de que, en caso de que.</p>'+
+   '<p><b>Conjunctions that take it for future or unknown events:</b> cuando, en cuanto, hasta que, después de que, aunque, donde, como.</p>'+
+   gE('Cuando llegues, llámame.','When you arrive, call me.')+gE('Cuando llego, siempre ceno.','When I arrive, I always have dinner. (habit, indicative)')+gE('Busco un piso que tenga balcón.','I am looking for a flat that has a balcony. (unknown)'));
+
+  add('sperf','Subjuntivo perfecto','haya hablado','<p>Present subjunctive of <b>haber</b> plus the participle. Use it when the action is already finished or seen from the future.</p>'+gModel('sperf',['hablar'])+gE('Espero que hayas dormido bien.','I hope you slept well.')+gE('No creo que haya llegado todavía.','I do not think he has arrived yet.')+gE('Cuando hayas terminado, avísame.','When you have finished, tell me.'));
+
+  add('simp','Subjuntivo imperfecto','hablara, tuviera','<p><b>Formation.</b> Take the ellos form of the indefinido, drop -ron, and add -ra, -ras, -ra, -ramos, -rais, -ran. Nosotros gets an accent on the vowel before -ramos.</p>'+gModel('simp')+
+   '<p>Every verb that is irregular in the indefinido carries that over: tuviera, hiciera, dijera, fuera, pudiera, durmiera, leyera.</p>'+
+   '<p>The same forms exist with -se (hablase, hablases, hablase, hablásemos, hablaseis, hablasen). Both mean the same, the -ra form is more common.</p>'+
+   '<p><b>Uses.</b></p>'+gE('Quería que vinieras.','I wanted you to come. (past main verb)')+gE('Me gustaría que me ayudaras.','I would like you to help me. (conditional main verb)')+gE('Si tuviera tiempo, viajaría más.','If I had time, I would travel more.')+gE('Ojalá tuviera más tiempo.','I wish I had more time.')+gE('Quisiera un café, por favor.','I would like a coffee, please. (polite)')+
+   '<p><b>Sequence of tenses:</b></p>'+gTbl(['Main verb','Subjunctive in que clause'],[['Present, future, imperative, perfecto','Present subjunctive (or perfecto)'],['Indefinido, imperfecto, condicional, pluscuamperfecto','Imperfect subjunctive']]));
+
+  add('splus','Subjuntivo pluscuamperfecto','hubiera hablado','<p>Imperfect subjunctive of <b>haber</b> plus the participle. It talks about unreal things in the past.</p>'+gModel('splus',['hablar'])+gE('Si hubiera estudiado más, habría aprobado.','If I had studied more, I would have passed.')+gE('Ojalá hubiera venido.','I wish he had come.')+gE('Me habría gustado que hubieras estado allí.','I would have liked you to have been there.'));
+
+  add('si','Si clauses (conditionals)','Real and unreal conditions','<p>The tense after <i>si</i> decides the type. Never use the present subjunctive or the future directly after si.</p>'+gTbl(['Type','si part','Result part','Example'],[['Real, possible','Presente','Presente, futuro or imperativo','Si llueve, me quedo en casa.'],['Unlikely or unreal now','Imperfecto de subjuntivo','Condicional','Si tuviera dinero, compraría una casa.'],['Impossible, past','Pluscuamperfecto de subjuntivo','Condicional compuesto','Si hubiera sabido, habría venido.'],['Mixed','Pluscuamperfecto de subjuntivo','Condicional','Si hubiera estudiado, ahora tendría un buen trabajo.']])+gE('Si quieres, te ayudo.','If you want, I will help you.')+gE('Si fuera tú, hablaría con él.','If I were you, I would talk to him.')+gE('Como si no pasara nada.','As if nothing were happening.'));
+
+  add('imp','Imperativo','Commands and instructions','<p><b>Affirmative.</b> Tú uses the él form of the present. Usted, nosotros and ustedes use the subjunctive. Vosotros replaces the final -r of the infinitive with -d.</p>'+gModel('impa')+
+   '<p><b>Negative.</b> Always no plus the subjunctive, for every person.</p>'+gModel('impn')+
+   '<p><b>Irregular tú forms</b> (affirmative only):</p>'+gTbl(['Infinitive','tú','Infinitive','tú'],[['decir','di','salir','sal'],['hacer','haz','ser','sé'],['ir','ve','tener','ten'],['poner','pon','venir','ven']])+
+   '<p><b>Pronouns.</b> They attach to an affirmative command and go before a negative one. An accent keeps the stress where it was.</p>'+gE('Dímelo.','Tell it to me.')+gE('No me lo digas.','Do not tell it to me.')+gE('Siéntate.','Sit down.')+gE('No te sientes aquí.','Do not sit here.')+gE('Vámonos.','Let us go.')+
+   '<p class="mu">Vamos is the affirmative nosotros form of ir (let us go). The negative uses the subjunctive: no vayamos. With reflexive verbs, the practice tab only asks for the negative form.</p>');
+
+  add('ger','Gerundio','hablando, comiendo, viviendo','<p>-ar verbs take -ando, -er and -ir verbs take -iendo. After a vowel, i becomes y.</p>'+gTbl(['Verb','Gerundio','Rule'],[['hablar','hablando','regular'],['comer','comiendo','regular'],['leer','leyendo','vowel stem'],['construir','construyendo','vowel stem'],['ir','yendo','irregular'],['dormir','durmiendo','-ir stem change'],['pedir','pidiendo','-ir stem change'],['decir','diciendo','-ir stem change'],['venir','viniendo','-ir stem change'],['poder','pudiendo','irregular']])+
+   '<p><b>Uses.</b> Estar plus gerundio for actions in progress. Seguir, llevar, ir, venir plus gerundio for ongoing actions.</p>'+gE('Estoy estudiando.','I am studying.')+gE('Sigue lloviendo.','It is still raining.')+gE('Llevo dos horas esperando.','I have been waiting for two hours.')+gE('Vamos mejorando poco a poco.','We are improving little by little.')+
+   '<p>Pronouns go before estar or attach to the gerundio: <i>Me estoy lavando</i> or <i>Estoy lavándome</i>.</p>');
+
+  add('part','Participio','Perfect tenses, adjectives, passive','<p>Regular: -ado and -ido. Irregular ones are listed under Pretérito perfecto (abierto, dicho, escrito, hecho, puesto, roto, visto, vuelto, muerto, cubierto, resuelto).</p>'+
+   '<p>With haber the participle never changes. As an adjective it agrees with the noun.</p>'+gE('He cerrado la puerta.','I have closed the door.')+gE('La puerta está cerrada.','The door is closed. (result)')+gE('La carta fue escrita por Ana.','The letter was written by Ana. (passive with ser)')+gE('Tengo escritas tres páginas.','I have three pages written.'));
+
+  add('pron','Pronoun overview','All pronoun types side by side','<p>Which pronoun to use depends on its job in the sentence.</p>'+gTbl(['Person','Subject','Direct object','Indirect object','Reflexive','After preposition'],[['1st sing.','yo','me','me','me','mí, conmigo'],['2nd sing.','tú','te','te','te','ti, contigo'],['3rd sing.','él, ella, usted','lo, la','le (se)','se','él, ella, usted, sí'],['1st pl.','nosotros','nos','nos','nos','nosotros'],['2nd pl.','vosotros','os','os','os','vosotros'],['3rd pl.','ellos, ellas, ustedes','los, las','les (se)','se','ellos, ellas, ustedes, sí']])+
+   '<p>Subject pronouns are usually left out because the verb ending shows the person. Use them for emphasis or contrast: <i>Yo trabajo, tú descansas.</i></p>'+
+   '<p>After most prepositions use mí and ti, but with con: <i>conmigo, contigo, consigo</i>. Entre, según, excepto, salvo and incluso take the subject forms: <i>entre tú y yo</i>.</p>');
+
+  add('dop','Direct object pronouns','lo, la, los, las, me, te, nos, os','<p>The direct object answers <b>what?</b> or <b>whom?</b>. The pronoun replaces it and agrees in gender and number with the noun.</p>'+gE('Veo la película. → La veo.','I see the film. → I see it.')+gE('Compro los libros. → Los compro.','I buy the books. → I buy them.')+gE('Conozco a Pedro. → Lo conozco.','I know Pedro. → I know him.')+gE('¿Me oyes? Sí, te oigo.','Can you hear me? Yes, I hear you.')+
+   '<p>For people, Spain often uses <i>le</i> instead of <i>lo</i> for a man (<i>Le veo</i>). Both are accepted. <i>Lo</i> can also stand for an idea: <i>Lo sé.</i> (I know it.)</p>');
+
+  add('iop','Indirect object pronouns','me, te, le, nos, os, les','<p>The indirect object answers <b>to whom?</b> or <b>for whom?</b>. Typical verbs: dar, decir, escribir, regalar, enviar, mandar, explicar, prestar, pedir, preguntar, contar, ofrecer, mostrar, comprar, traer.</p>'+gTbl(['Person','Pronoun','Example'],[['to me','me','Me das el libro.'],['to you','te','Te escribo una carta.'],['to him, her, you (usted)','le','Le explico la regla a Ana.'],['to us','nos','Nos cuenta una historia.'],['to you all (vosotros)','os','Os traigo un regalo.'],['to them, you all (ustedes)','les','Les digo la verdad a mis padres.']])+
+   '<p><b>Doubling.</b> In Spanish the indirect pronoun is normally used even when the person is named. Both are present: <i>Le doy el libro a María.</i> Without the pronoun it sounds wrong. For emphasis or clarity add <i>a mí, a ti, a él, a ella, a usted, a nosotros, a ellos</i>: <i>A mí me gusta, a ti no.</i></p>'+
+   gE('Le compré flores a mi madre.','I bought flowers for my mother.')+gE('¿Les has dicho algo a los vecinos?','Have you told the neighbours anything?')+gE('Me han robado la cartera.','Someone stole my wallet (from me).'));
+
+  add('order','Pronoun order and placement','me lo, se lo, dártelo','<p><b>Order:</b> reflexive, then indirect, then direct (RID). Both come before the conjugated verb, in this order: me/te/nos/os, then lo/la/los/las.</p>'+gE('Me lo das.','You give it to me.')+gE('Te las envío.','I send them to you.')+gE('Nos lo explica.','He explains it to us.')+
+   '<p><b>le or les before lo, la, los, las becomes se.</b> Two l sounds are not allowed next to each other.</p>'+gE('Le doy el libro. → Se lo doy.','I give him the book. → I give it to him.')+gE('Les escribo la carta. → Se la escribo.','I write the letter to them. → I write it to them.')+
+   '<p><b>Placement.</b></p>'+gTbl(['Verb form','Position','Example'],[['Conjugated verb','before','Me lo dice.'],['Infinitive','before the conjugated verb or attached','Te lo quiero dar. / Quiero dártelo.'],['Gerundio','before estar or attached','Me lo estás diciendo. / Estás diciéndomelo.'],['Affirmative command','attached','Dímelo. Dáselo.'],['Negative command','before','No me lo digas.'],['Perfect tenses','before haber','Me lo ha dicho.']])+
+   '<p>When attaching, add an accent to keep the stress: <i>dar → dármelo, diciendo → diciéndomelo, da → dámelo</i>.</p>');
+
+  add('refl','Reflexive verbs','levantarse, me levanto','<p>The action returns to the subject. The pronoun matches the subject: me, te, se, nos, os, se.</p>'+gModel('pres',['levantarse','llamarse','irse'])+
+   '<p>Common reflexive verbs: levantarse, acostarse, ducharse, vestirse, lavarse, despertarse, sentarse, quedarse, llamarse, sentirse, divertirse, irse, ponerse (to put on), quitarse (to take off), acordarse de, olvidarse de.</p>'+
+   '<p><b>Reciprocal</b> (each other, plural only): <i>Nos vemos mañana. Se quieren mucho.</i></p>'+
+   '<p><b>Meaning changes:</b> ir (go) and irse (leave), dormir (sleep) and dormirse (fall asleep), poner (put) and ponerse (put on, become), llamar (call) and llamarse (be called).</p>'+
+   gE('Me lavo las manos.','I wash my hands. (use el, la, los, las with body parts and clothes, not mi)')+gE('Se cayó el vaso.','The glass fell. (accidental se)'));
+
+  add('gust','gustar and similar verbs','Me gusta, me duele, me encanta','<p>The thing you like is the <b>subject</b>, the person is the <b>indirect object</b>. The verb agrees with the thing, not with the person.</p>'+gTbl(['Person','Pronoun','Verb','Thing liked'],[['(A mí)','me','gusta','el café / bailar'],['(A ti)','te','gusta','la música'],['(A él, ella, usted)','le','gusta','este libro'],['(A nosotros)','nos','gustan','los gatos'],['(A vosotros)','os','gustan','las películas'],['(A ellos, ustedes)','les','gustan','los deportes']])+
+   '<p>Singular or an infinitive uses <i>gusta</i>. Plural uses <i>gustan</i>.</p>'+gE('Me gusta el té y me gustan las galletas.','I like tea and I like biscuits.')+gE('A mí me encanta correr, a ti no.','I love running, you do not.')+
+   '<p><b>Similar verbs:</b> encantar (love), fascinar, interesar, molestar (bother), importar (matter), parecer (seem), doler (hurt), faltar (be missing), quedar (be left), sobrar (be more than enough), apetecer (feel like), preocupar, aburrir, dar miedo, dar igual.</p>'+
+   gE('Me duele la cabeza.','My head hurts.')+gE('Nos falta tiempo.','We lack time.')+gE('¿Te apetece un café?','Do you feel like a coffee?')+gE('Me pareció interesante.','It seemed interesting to me.')+gE('Me gustaría ir.','I would like to go.'));
+
+  add('ind','Indirect speech (estilo indirecto)','Reporting what someone said','<p>You report what someone said with <b>que</b> (statements), <b>si</b> (yes or no questions) or the question word (other questions). If the reporting verb is in the <b>past</b> (dijo, preguntó, explicó), the tense usually moves one step back.</p>'+
+   gTbl(['Direct speech','Indirect speech'],[['Presente<br><i>«Estoy cansado.»</i>','Imperfecto<br><i>Dijo que estaba cansado.</i>'],['Pretérito perfecto<br><i>«He terminado.»</i>','Pluscuamperfecto<br><i>Dijo que había terminado.</i>'],['Indefinido<br><i>«Llegué ayer.»</i>','Pluscuamperfecto (indefinido is also heard)<br><i>Dijo que había llegado el día anterior.</i>'],['Imperfecto<br><i>«Vivía en Lima.»</i>','Imperfecto (no change)<br><i>Dijo que vivía en Lima.</i>'],['Futuro simple<br><i>«Vendré mañana.»</i>','Condicional<br><i>Dijo que vendría al día siguiente.</i>'],['Futuro perfecto<br><i>«Habré terminado.»</i>','Condicional compuesto<br><i>Dijo que habría terminado.</i>'],['Condicional<br><i>«Me gustaría ir.»</i>','Condicional (no change)<br><i>Dijo que le gustaría ir.</i>'],['Imperativo<br><i>«Ven aquí.»</i>','Subjuntivo imperfecto<br><i>Me dijo que viniera allí.</i>'],['Subjuntivo presente<br><i>«Quiero que vengas.»</i>','Subjuntivo imperfecto<br><i>Dijo que quería que viniera.</i>']])+
+   '<p><b>Questions.</b></p>'+gE('«¿Tienes hambre?» → Me preguntó si tenía hambre.','He asked me if I was hungry.')+gE('«¿Dónde vives?» → Me preguntó dónde vivía.','He asked me where I lived.')+gE('«¿Qué haces?» → Preguntó qué hacía.','He asked what I was doing. (no question marks, the accent on qué stays)')+
+   '<p><b>Commands and requests</b> become que plus subjunctive. Verbs: decir, pedir, ordenar, mandar, aconsejar, sugerir, rogar.</p>'+gE('«Cierra la puerta.» → Me pidió que cerrara la puerta.','He asked me to close the door.')+gE('«No hables.» → Me dijo que no hablara.','He told me not to speak.')+
+   '<p><b>Words that change with the point of view:</b></p>'+gTbl(['Direct','Indirect'],[['hoy','ese día'],['ayer','el día anterior, la víspera'],['mañana','al día siguiente'],['ahora','entonces'],['esta semana','aquella semana'],['el año pasado','el año anterior'],['hace dos días','dos días antes'],['aquí','allí'],['este, esta','ese, esa, aquel, aquella'],['yo, mi, mío','él o ella, su, suyo'],['venir (ven)','ir (fuera)']])+
+   '<p><b>No step back</b> when the reporting verb is present, perfecto or future, or when it is happening right now:</p>'+gE('Dice que está cansado.','He says he is tired.')+gE('Ha dicho que vendrá mañana.','He has said he will come tomorrow.')+
+   '<p>Other reporting verbs: contestar, explicar, comentar, afirmar, añadir, contar, prometer (que plus condicional or an infinitive), confesar, negar.</p>'+gE('Prometió que me llamaría.','He promised he would call me.')+gE('Prometió llamarme.','He promised to call me.'));
+
+  add('ser','ser or estar?','Two verbs for to be','<p>Ser is for <b>what something is</b>. Estar is for <b>how or where something is</b>.</p>'+gTbl(['SER','ESTAR'],[['Identity, profession, origin: <i>Soy Arne. Soy tenista. Soy de Colonia.</i>','Location (things and people): <i>Estoy en casa. Bonn está en Alemania.</i>'],['Characteristics: <i>Es alto. Es una ciudad bonita.</i>','Temporary state, mood: <i>Estoy cansado. Está enfadada.</i>'],['Time, date, price: <i>Son las tres. Hoy es lunes.</i>','Ongoing action: <i>Estoy comiendo.</i>'],['Material, possession: <i>Es de madera. Es de Ana.</i>','Result of an action: <i>La puerta está abierta.</i>'],['Events: <i>La fiesta es en mi casa.</i>','With bien and mal: <i>Estoy bien.</i>'],['Passive voice: <i>Fue escrito por Ana.</i>','']])+
+   '<p><b>Meaning changes with the verb:</b></p>'+gTbl(['Adjective','with ser','with estar'],[['aburrido','boring','bored'],['listo','clever','ready'],['malo','bad (a bad person)','ill'],['rico','rich','tasty'],['seguro','safe','sure'],['verde','green','unripe'],['abierto','open-minded','open'],['orgulloso','proud (arrogant)','proud (of something)']]));
+
+  add('porpara','por or para?','Two prepositions for for','<p><b>Para</b> looks forward: purpose, goal, destination, deadline, recipient. <b>Por</b> looks back or through: cause, reason, exchange, duration, movement through a place, agent.</p>'+gTbl(['PARA','POR'],[['Purpose: <i>Estudio para aprobar.</i>','Cause, reason: <i>Lo hice por ti.</i>'],['Destination: <i>Salgo para Madrid.</i>','Movement through: <i>Paseo por el parque.</i>'],['Deadline: <i>Es para el lunes.</i>','Duration, time of day: <i>por la mañana, por dos semanas</i>'],['Recipient: <i>Un regalo para ti.</i>','Exchange, price: <i>Lo compré por diez euros.</i>'],['Opinion: <i>Para mí, es difícil.</i>','Agent in passive: <i>escrito por Ana</i>'],['Comparison: <i>Para un niño, es alto.</i>','Frequency, rate: <i>tres veces por semana</i>'],['Employment: <i>Trabajo para una empresa.</i>','Fixed phrases: por favor, por supuesto, por eso, por fin, por ejemplo']])+
+   gE('Gracias por la ayuda.','Thanks for the help.')+gE('Estoy aquí para ayudarte.','I am here to help you.')+gE('Estoy a punto de salir.','I am about to leave.'));
+
+  add('q','Question words and exclamations','Qué, cuál, quién, dónde...','<p>All question words carry an accent, also in indirect questions: <i>No sé dónde vive.</i></p>'+gTbl(['Word','Meaning','Example'],[['qué','what','¿Qué quieres?'],['cuál, cuáles','which (one)','¿Cuál prefieres?'],['quién, quiénes','who','¿Quién es?'],['dónde, adónde','where, where to','¿Adónde vas?'],['cuándo','when','¿Cuándo llegas?'],['cómo','how','¿Cómo estás?'],['cuánto, cuánta, cuántos, cuántas','how much, how many','¿Cuántos años tienes?'],['por qué','why','¿Por qué lloras?'],['para qué','what for','¿Para qué sirve?'],['de quién','whose','¿De quién es?']])+
+   '<p><b>Qué or cuál?</b> Qué asks for a definition or a choice before a noun (<i>¿Qué libro?</i>). Cuál chooses among a known group (<i>¿Cuál es tu número?</i>).</p>'+
+   '<p><b>Exclamations:</b> <i>¡Qué bonito! ¡Qué suerte! ¡Cuánto tiempo! ¡Cómo llueve!</i></p>'+
+   '<p>Spanish questions and exclamations start with an upside down mark: ¿ and ¡.</p>');
+
+  add('comp','Comparisons and superlatives','más que, tan como, el más','<p>Comparisons with <i>más</i> and <i>menos</i> use <b>que</b>. Equal comparisons use <b>tan... como</b> (adjectives) and <b>tanto... como</b> (nouns, verbs).</p>'+gE('Ana es más alta que yo.','Ana is taller than me.')+gE('Estudio menos que tú.','I study less than you.')+gE('Soy tan rápido como él.','I am as fast as him.')+gE('Tengo tantos libros como tú.','I have as many books as you.')+gE('Más de diez personas.','More than ten people. (de with numbers)')+
+   '<p><b>Irregular:</b> bueno, mejor; malo, peor; grande, mayor (older, bigger); pequeño, menor (younger, smaller); bien, mejor; mal, peor.</p>'+
+   '<p><b>Superlative:</b> el más, la menos, los mejores plus <b>de</b>: <i>Es el más alto de la clase.</i> With -ísimo: <i>buenísimo, altísimo, riquísimo</i> (very, very).</p>');
+
+  add('neg','Negation and indefinite words','nada, nadie, nunca, ningún','<p>Spanish uses double negatives. If a negative word comes after the verb, put <b>no</b> before the verb. If it comes before the verb, drop the no.</p>'+gTbl(['Positive','Negative'],[['algo, something','nada, nothing'],['alguien, someone','nadie, nobody'],['siempre, always','nunca, jamás, never'],['también, also','tampoco, neither'],['algún, alguno, alguna','ningún, ninguno, ninguna'],['o... o, either or','ni... ni, neither nor'],['ya, already','todavía no, aún no, not yet']])+
+   gE('No veo a nadie.','I do not see anybody.')+gE('Nadie lo sabe.','Nobody knows it.')+gE('No tengo ningún problema.','I have no problem.')+gE('Yo tampoco.','Me neither.')+gE('No quiero ni café ni té.','I want neither coffee nor tea.'));
+
+  add('verbs','Useful verb pairs and phrases','saber and conocer, hace, acabar de','<p><b>Saber or conocer.</b> Saber is knowing facts or how to do something. Conocer is being familiar with a person, place or thing.</p>'+gE('Sé hablar español.','I know how to speak Spanish.')+gE('Conozco a tu hermana.','I know your sister.')+
+   '<p><b>Obligation:</b> tener que plus infinitive (personal duty), hay que (general rule), deber (moral duty).</p>'+gE('Tengo que estudiar.','I have to study.')+gE('Hay que comer bien.','One has to eat well.')+
+   '<p><b>Time:</b></p>'+gE('Hace dos años que vivo aquí.','I have lived here for two years.')+gE('Vivo aquí desde hace dos años.','I have lived here for two years.')+gE('Llegué hace una hora.','I arrived an hour ago.')+
+   '<p><b>With infinitives:</b></p>'+gTbl(['Phrase','Meaning','Example'],[['acabar de','to have just','Acabo de llegar.'],['volver a','to do again','Vuelvo a intentarlo.'],['dejar de','to stop','Dejó de fumar.'],['empezar a','to begin to','Empiezo a entender.'],['seguir plus gerundio','to keep on','Sigo estudiando.'],['soler','to usually','Suelo levantarme temprano.'],['ir a','to be going to','Voy a salir.'],['tardar en','to take time','Tardo una hora en llegar.']]));
+
+  add('prep','Verbs with prepositions','pensar en, soñar con, depender de','<p>Many verbs need a fixed preposition. Learn them together:</p>'+gTbl(['with a','with de','with en','with con','with por'],[['ayudar a','acordarse de','pensar en','soñar con','preocuparse por'],['empezar a','olvidarse de','confiar en','contar con','interesarse por'],['aprender a','depender de','insistir en','casarse con','votar por'],['ir a','tratar de','fijarse en','encontrarse con','luchar por'],['volver a','enamorarse de','quedar en','tropezar con','']])+
+   gE('Pienso en ti.','I think of you.')+gE('Sueño con viajar.','I dream of travelling.')+gE('Me olvidé de la llave.','I forgot the key.')+gE('Dependo de ti.','I depend on you.')+
+   '<p><b>Personal a.</b> Put <b>a</b> before a specific person (or pet) that is the direct object: <i>Veo a Ana. Busco a mi perro.</i> Not before things, and not after tener.</p>');
+
+  add('acc','Accents and stress','Where the written accent goes','<p>Stress rule in one line: words ending in a vowel, n or s are stressed on the second to last syllable (<i>hablo, hablan</i>). Words ending in any other consonant are stressed on the last syllable (<i>hablar, ciudad</i>). Any exception gets a written accent: <i>habló, estación, árbol</i>.</p>'+
+   '<p><b>Accents that change the meaning:</b></p>'+gTbl(['no accent','accent'],[['el, the','él, he'],['tu, your','tú, you'],['mi, my','mí, me (after a preposition)'],['si, if','sí, yes'],['se, reflexive pronoun','sé, I know or be (command)'],['te, you (object)','té, tea'],['mas, but (rare)','más, more'],['de, of','dé, give (subjunctive)'],['que, that','qué, what']])+
+   '<p>Accents also separate tenses: <i>hablo</i> (I speak), <i>habló</i> (he spoke), <i>hablé</i> (I spoke), <i>hable</i> (subjunctive).</p>');
+
+  return T;
+}
+
+// ===== Spanish grammar: tab (reference, conjugator, practice) =====
+let GT={sub:'ref',q:'',verb:'',open:{},copen:{pres:1,pret:1,impf:1,fut:1}};
+let GQ=null,_GREF=null;
+const GQUICK=['ser','estar','tener','ir','hacer','poder','querer','decir','venir','poner','saber','ver','dar','salir'];
+function gcfg(){if(!S.gcfg)S.gcfg={t:['pres','pret','impf'],v:'all',n:10};if(!S.gs)S.gs={n:0,ok:0};if(!S.gw)S.gw={};return S.gcfg}
+function gsub(x){GT.sub=x;render()}
+
+function grammarView(){
+  gcfg();
+  const sg=[['ref','Reference'],['conj','Conjugator'],['prac','Practice']];
+  return '<h1>Grammar</h1><div class="seg">'+sg.map(s=>'<button class="'+(GT.sub===s[0]?'on':'')+'" onclick="gsub(\''+s[0]+'\')">'+s[1]+'</button>').join('')+'</div>'+
+    (GT.sub==='ref'?gRefHtml():GT.sub==='conj'?gConjHtml():gPracHtml());
+}
+
+// ---- reference ----
+function gRefHtml(){
+  if(!_GREF){_GREF=gTopics();_GREF.forEach(t=>t.s=gplain((t.title+' '+t.sub+' '+t.html.replace(/<[^>]+>/g,' ')).toLowerCase()))}
+  return '<input id="gq" placeholder="Search topics, e.g. indirect, por, gustar" value="'+esc(GT.q)+'" oninput="gfilter(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">'+
+    '<div id="gtop" style="margin-top:12px">'+_GREF.map((t,i)=>'<details class="card gd" data-i="'+i+'"'+(GT.open[t.id]?' open':'')+' ontoggle="GT.open[\''+t.id+'\']=this.open"><summary><b>'+t.title+'</b><span class="mu">'+t.sub+'</span></summary><div class="gb">'+t.html+'</div></details>').join('')+'<div id="gnone" class="mu" style="display:none;text-align:center">Nothing found.</div></div>';
+}
+function gfilter(q){
+  GT.q=q;const w=gplain(q.toLowerCase()).trim().split(/\s+/).filter(Boolean);let n=0;
+  const ds=[...document.querySelectorAll('.gd')];
+  ds.forEach(d=>{const t=_GREF[+d.dataset.i],ok=w.every(x=>t.s.includes(x));d.style.display=ok?'':'none';if(ok)n++});
+  const nn=$('#gnone');if(nn)nn.style.display=n?'none':'';
+}
+
+// ---- conjugator ----
+function gConjHtml(){
+  return '<input id="gv" list="gvl" placeholder="Type a verb, e.g. hablar, tener, acostarse" value="'+esc(GT.verb)+'" oninput="gverb(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">'+
+    '<datalist id="gvl">'+GV.map(v=>'<option value="'+v.inf+'">'+esc(v.en)+'</option>').join('')+'</datalist>'+keysRow('gv')+
+    '<div class="gchips">'+GQUICK.map(v=>'<button class="chip" onclick="gpick(\''+v+'\')">'+v+'</button>').join('')+'</div>'+
+    '<div id="gres">'+gConjRes()+'</div>';
+}
+function gpick(v){GT.verb=v;const i=$('#gv');if(i)i.value=v;$('#gres').innerHTML=gConjRes();window.scrollTo(0,0)}
+function gverb(v){GT.verb=v;$('#gres').innerHTML=gConjRes()}
+function gToggleT(k,el){GT.copen[k]=el.open?1:0}
+function gAll(open){GT_LIST.forEach(t=>GT.copen[t[0]]=open?1:0);$('#gres').innerHTML=gConjRes()}
+function gConjRes(){
+  const q=(GT.verb||'').trim();
+  if(!q)return '<div class="mu" style="margin-top:12px">Type any Spanish infinitive. About '+GV.length+' common verbs with their irregular forms are built in, and other verbs are shown as regular.</div>';
+  const r=gfind(q);
+  if(!r)return '<div class="mu" style="margin-top:12px">Type an infinitive, for example <b>hablar</b>, <b>comer</b> or <b>vivir</b>.</div>';
+  const v=r.v,c=gconj(v),rg=gconj({inf:v.inf,f:{}});
+  let h='<div class="card" style="margin-top:12px"><div class="big" style="font-size:30px;margin:4px 0 2px">'+esc(v.inf)+'</div>'+
+    (r.known?'<div class="mu" style="text-align:center">'+esc(v.en)+' · '+esc(v.de)+'</div>':'<div class="mu" style="text-align:center">Not in my list, so these are regular forms. Check irregulars yourself.</div>')+
+    '<div class="row" style="justify-content:center;gap:18px;margin-top:10px"><span><span class="mu">Gerundio</span> <b'+(c.ger!==rg.ger?' class="irr"':'')+'>'+esc(c.ger)+'</b></span><span><span class="mu">Participio</span> <b'+(c.part!==rg.part?' class="irr"':'')+'>'+esc(c.part)+'</b></span></div>'+
+    (v.irr?'<div class="mu" style="text-align:center;margin-top:8px">Irregular or spelling changes are shown in colour.</div>':'')+
+    '<div class="row" style="margin-top:8px"><button class="btn sec" style="margin:0" onclick="gAll(true)">Open all</button><button class="btn sec" style="margin:0" onclick="gAll(false)">Close all</button></div></div>';
+  let grp='';
+  GT_LIST.forEach(t=>{
+    if(t[2]!==grp){grp=t[2];h+='<div class="mu" style="margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.6px;font-size:12px">'+grp+'</div>'}
+    const f=c.T[t[0]],imp=t[0]==='impa'||t[0]==='impn';
+    h+='<details class="card gd2"'+(GT.copen[t[0]]?' open':'')+' ontoggle="gToggleT(\''+t[0]+'\',this)"><summary><b>'+t[1]+'</b></summary>';
+    if(!f)h+='<div class="mu" style="margin-top:8px">With reflexive verbs the pronoun is attached to the command (for example levántate). Use the negative form here.</div>';
+    else h+='<table class="gt" style="margin-top:6px"><tbody>'+f.map((x,i)=>'<tr><td class="pc">'+(imp?GIMP[i]:GP[i])+'</td><td'+(x!==rg.T[t[0]][i]?' class="irr"':'')+'>'+esc(x)+'</td></tr>').join('')+'</tbody></table>';
+    h+='</details>';
+  });
+  return h;
+}
+
+// ---- practice ----
+function gNormA(s){return s.trim().toLowerCase().replace(/\s+/g,' ')}
+function gAlts(c,k){
+  const a=[c];
+  if(k==='simp')a.push(gseSwap(c));
+  if(k==='splus')a.push(c.split(' ').map(w=>/^hubi/.test(w)?gseSwap(w):w).join(' '));
+  if(k==='impn')a.push(c.replace(/^no /,''));
+  return a.map(gNormA);
+}
+function gPool(){
+  const cfg=gcfg();
+  return GV.filter(v=>cfg.v==='irr'?v.irr:cfg.v==='reg'?!v.irr:true);
+}
+function gStart(){
+  const cfg=gcfg();if(!gPool().length||!cfg.t.length)return;
+  GQ={n:cfg.n,i:0,ok:0,st:'ask',cur:null,miss:[],val:''};gNew();render();
+}
+function gNew(){
+  const cfg=gcfg(),pool=gPool();let it=null;
+  const weak=Object.keys(S.gw).filter(k=>{const a=k.split('|');return cfg.t.includes(a[1])&&pool.some(v=>v.inf===a[0])});
+  if(weak.length&&Math.random()<.35){
+    const k=weak[Math.floor(Math.random()*weak.length)].split('|'),v=GVM[k[0]],c=gconj(v);
+    if(c.T[k[1]])it={v,k:k[1],p:+k[2],c};
+  }
+  for(let g=0;!it&&g<50;g++){
+    const v=pool[Math.floor(Math.random()*pool.length)],k=cfg.t[Math.floor(Math.random()*cfg.t.length)],c=gconj(v);
+    if(!c.T[k])continue;
+    const p=Math.floor(Math.random()*c.T[k].length);
+    if(GQ.cur&&GQ.cur.v===v&&GQ.cur.k===k&&GQ.cur.p===p)continue;
+    it={v,k,p,c};
+  }
+  if(!it){const v=pool[0],c=gconj(v);it={v,k:'pres',p:0,c}}
+  it.ans=it.c.T[it.k][it.p];GQ.cur=it;GQ.st='ask';GQ.val='';
+}
+function gcheck(){
+  if(!GQ||GQ.st!=='ask')return;
+  const el=$('#gin'),val=el?el.value:'';if(!val.trim())return;
+  const it=GQ.cur,alts=gAlts(it.ans,it.k),a=gNormA(val);
+  const key=it.v.inf+'|'+it.k+'|'+it.p;
+  GQ.val=val;
+  if(alts.includes(a)){
+    GQ.st='ok';GQ.ok++;S.gs.n++;S.gs.ok++;
+    if(S.gw[key])delete S.gw[key];
+    try{sfx(true)}catch(e){}
+  }else{
+    GQ.st='bad';GQ.accent=alts.some(x=>gplain(x)===gplain(a));S.gs.n++;
+    S.gw[key]=(S.gw[key]||0)+1;
+    const ks=Object.keys(S.gw);if(ks.length>300)delete S.gw[ks[0]];
+    GQ.miss.push({inf:it.v.inf,k:it.k,p:it.p,ans:it.ans,val:val});
+    try{sfx(false)}catch(e){}
+  }
+  save();render();
+}
+function gnext(){
+  if(!GQ)return;
+  GQ.i++;
+  if(GQ.i>=GQ.n){GQ.cur=null;GQ.st='end';render();return}
+  gNew();render();
+}
+function gStop(){GQ=null;render()}
+function gtog(k){const c=gcfg(),i=c.t.indexOf(k);if(i>=0){if(c.t.length>1)c.t.splice(i,1)}else c.t.push(k);save();render()}
+function gset(f,v){gcfg()[f]=f==='n'?+v:v;save();render()}
+function gResetStats(){S.gs={n:0,ok:0};S.gw={};save();render()}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||tab!=='grammar'||GT.sub!=='prac'||!GQ||!GQ.cur)return;
+  e.preventDefault();
+  if(GQ.st==='ask')gcheck();else gnext();
+});
+
+function gPracHtml(){
+  const cfg=gcfg();
+  if(GQ&&GQ.st==='end'){
+    let h='<div class="card"><div class="big" style="margin-top:6px">'+GQ.ok+' / '+GQ.n+'</div><div class="mu" style="text-align:center">'+(GQ.ok===GQ.n?'Perfect round.':GQ.ok>=GQ.n*0.8?'Very good.':'Keep going, the misses come back more often.')+'</div>';
+    if(GQ.miss.length){h+='<div class="mu" style="margin:14px 0 4px">To review</div>'+GQ.miss.map(m=>'<div class="w"><div><b>'+esc(m.ans)+'</b><div class="mu">'+esc(m.inf)+' · '+(m.k.startsWith('imp')?GIMP[m.p]:GP[m.p])+' · '+GT_NAME[m.k]+'</div></div><div class="mu" style="text-align:right">you: '+esc(m.val)+'</div></div>').join('')}
+    h+='<button class="btn" onclick="gStart()">Practise again</button><button class="btn sec" onclick="gStop()">Back to settings</button></div>';
+    return h;
+  }
+  if(GQ&&GQ.cur){
+    const it=GQ.cur,imp=it.k==='impa'||it.k==='impn',pers=imp?GIMP[it.p]:GP[it.p],done=GQ.st!=='ask';
+    let h='<div class="card"><div class="prog"><i style="width:'+Math.round(GQ.i/GQ.n*100)+'%"></i></div><div class="mu" style="display:flex;justify-content:space-between"><span>Question '+(GQ.i+1)+' of '+GQ.n+'</span><span>'+GQ.ok+' right</span></div>'+
+      '<div class="big" style="margin:14px 0 4px">'+esc(it.v.inf)+'</div><div class="mu" style="text-align:center">'+esc(it.v.en)+'</div>'+
+      '<div style="text-align:center;margin:12px 0 4px;font-size:18px"><b>'+pers+'</b> <span class="mu">·</span> <span style="color:var(--ac)">'+GT_NAME[it.k]+'</span></div>'+
+      '<input id="gin" '+(done?'readonly ':'')+'value="'+esc(GQ.val||'')+'" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="text-align:center;font-size:20px;margin-top:6px">'+
+      (done?'':keysRow('gin'));
+    if(GQ.st==='ok')h+='<div class="fb ok">Correct: '+esc(it.ans)+'</div>';
+    if(GQ.st==='bad')h+='<div class="fb bad">'+(GQ.accent?'Almost, mind the accents. ':'')+'Correct: '+esc(it.ans)+'</div>';
+    h+=done?'<button class="btn" onclick="gnext()">'+(GQ.i+1>=GQ.n?'Finish':'Next')+'</button>':'<button class="btn" onclick="gcheck()">Check</button>';
+    h+='<button class="btn sec" onclick="gStop()">Stop</button></div>';
+    return h;
+  }
+  const pool=gPool(),weak=Object.keys(S.gw).length;
+  const acc=S.gs.n?Math.round(S.gs.ok/S.gs.n*100):0;
+  let h='<div class="card"><div class="mu" style="margin-bottom:8px">Tenses to practise</div><div>'+
+    ['Indicativo','Subjuntivo','Imperativo'].map(g=>'<div class="mu" style="margin:8px 0 2px;font-size:12px">'+g+'</div>'+GT_LIST.filter(t=>t[2]===g).map(t=>'<button class="chip'+(cfg.t.includes(t[0])?' on':'')+'" onclick="gtog(\''+t[0]+'\')">'+t[1]+'</button>').join('')).join('')+'</div>'+
+    '<div class="mu" style="margin:14px 0 6px">Verbs</div><select onchange="gset(\'v\',this.value)"><option value="all"'+(cfg.v==='all'?' selected':'')+'>All verbs ('+GV.length+')</option><option value="irr"'+(cfg.v==='irr'?' selected':'')+'>Irregular or spelling changes only ('+GV.filter(v=>v.irr).length+')</option><option value="reg"'+(cfg.v==='reg'?' selected':'')+'>Regular verbs only ('+GV.filter(v=>!v.irr).length+')</option></select>'+
+    '<div class="mu" style="margin:14px 0 6px">Questions per round</div><select onchange="gset(\'n\',this.value)">'+[10,20,30,50].map(n=>'<option value="'+n+'"'+(cfg.n===n?' selected':'')+'>'+n+'</option>').join('')+'</select>'+
+    '<button class="btn" onclick="gStart()">Start</button></div>'+
+    '<div class="card"><div class="mu">All time: '+S.gs.n+' answers, '+acc+'% right'+(weak?'. '+weak+' forms to review, they come back more often.':'.')+'</div>'+(S.gs.n?'<button class="btn sec" style="margin-top:10px" onclick="gResetStats()">Reset practice stats</button>':'')+
+    '<div class="mu" style="margin-top:10px">Type the full form, with accents. Reflexive verbs need the pronoun (me levanto). Negative commands can be typed with or without no. For the imperfect subjunctive, both -ra and -se forms are accepted.</div></div>';
+  return h;
+}
+
 </script>
 </body>
 </html>
