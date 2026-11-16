@@ -212,7 +212,7 @@ let SYN={tok:'',gid:'',base:0},SY={st:'',msg:'',conf:null,busy:false,last:0},boo
 try{SYN.tok=localStorage.getItem(TK)||'';const o=JSON.parse(localStorage.getItem(SK)||'{}');SYN.gid=o.gid||'';SYN.base=o.base||0}catch(e){}
 function synSave(){try{localStorage.setItem(TK,SYN.tok);localStorage.setItem(SK,JSON.stringify({gid:SYN.gid,base:SYN.base}))}catch(e){}}
 // The Home Screen app can hold on to an old copy of this page. At startup it asks the server for the newest copy and offers an update.
-const BUILD='202611131307';
+const BUILD='202611161158';
 let UPD=false;
 async function checkUpdate(){
   try{
@@ -701,9 +701,20 @@ function addPack(ui,pi){
   if(packDone(pid))return;
   const have=new Set(S.cards.map(c=>clean(c.es).toLowerCase()));
   const id=Date.now()+ui*50+pi,old=S.view;
-  S.lists.push({id:id,name:pid,lang:'de'});S.view=id;
+  S.lists.push({id:id,name:pid,lang:defLang()});S.view=id;
   p.lines.forEach(l=>{const q=l.split(/\s*;\s*/);if(q.length>=2&&!have.has(clean(q[0]).toLowerCase()))addCard(q[0].trim(),q[1].trim(),true)});
   S.view=old;S.packs[pid]=id;save();render();
+}
+function defLang(){return (S.tl||'es')==='it'?'nl':'de'}
+// Add one single word from a pack preview. Picked words go into their own list, "Picked words", and are available right away.
+function addWord(ui,pi,wi){
+  const l=packs(COURSE[ui])[pi].lines[wi],q=l.split(/\s*;\s*/);
+  if(q.length<2)return;
+  if(S.cards.some(c=>clean(c.es).toLowerCase()===clean(q[0]).toLowerCase()))return;
+  let pl=S.lists.find(x=>x.id===S.pickList);
+  if(!pl){pl={id:Date.now(),name:'Picked words',lang:defLang()};S.lists.push(pl);S.pickList=pl.id}
+  const old=S.view;S.view=pl.id;addCard(q[0].trim(),q[1].trim());S.view=old;
+  save();render();
 }
 function nextPack(){
   for(let ui=0;ui<COURSE.length;ui++){const ps=packs(COURSE[ui]);for(let pi=0;pi<ps.length;pi++){if(!packDone(COURSE[ui].u+' Pack '+(pi+1))){addPack(ui,pi);return}}}
@@ -713,13 +724,13 @@ function courseView(){
   const box='<textarea id="ctext" style="min-height:150px" placeholder="Paste the course text here" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>';
   if(!COURSE.length)return '<h1>Course</h1><div class="card"><div class="mu" style="margin-bottom:10px">The course words are not part of this page. Paste your course text here once. It stays in this browser on this device.</div>'+box+'<button class="btn" onclick="saveCourse()">Save course text</button><div id="cmsg" class="mu" style="margin-top:8px"></div></div>';
   let n=0,pk=0;COURSE.forEach(u=>{const ps=packs(u);pk+=ps.length;ps.forEach(p=>n+=p.lines.length)});
-  let h='<h1>Course</h1><div class="mu" style="margin-bottom:12px">'+n+' words in '+pk+' packs of about 20 words. Tap Add and the pack becomes a list. Its words wait in the queue and arrive at your daily pace.</div><button class="btn" style="margin:0 0 14px" onclick="nextPack()">Add the next pack</button>';
+  let h='<h1>Course</h1><div class="mu" style="margin-bottom:12px">'+n+' words in '+pk+' packs of about 20 words. Tap Add and the pack becomes a list. Its words wait in the queue and arrive at your daily pace. Tap Preview to add single words.</div><button class="btn" style="margin:0 0 14px" onclick="nextPack()">Add the next pack</button>';
   COURSE.forEach((u,ui)=>{
     h+='<div class="card"><b>'+esc(u.u)+'</b>';
     packs(u).forEach((p,pi)=>{
       const done=packDone(u.u+' Pack '+(pi+1)),id=ui+'-'+pi,open=cpv===id;
       h+='<div class="w"><div>Pack '+(pi+1)+'<div class="mu">'+esc(p.secs.join(', '))+' · '+p.lines.length+' words</div></div><div style="white-space:nowrap"><button class="e" style="font-size:16px" onclick="cpv=\''+(open?'':id)+'\';render()">'+(open?'Hide':'Preview')+'</button> '+(done?'<span class="mu">Added</span>':'<button class="e" style="font-size:16px" onclick="addPack('+ui+','+pi+')">Add</button>')+'</div></div>';
-      if(open)h+='<div style="padding:2px 0 10px">'+p.lines.map(l=>{const q=l.split(/\s*;\s*/);return '<div class="w" style="padding:6px 0"><b>'+show(q[0])+'</b><span class="mu" style="text-align:right">'+show(q[1])+'</span></div>'}).join('')+'</div>';
+      if(open){const have=new Set(S.cards.map(c=>clean(c.es).toLowerCase()));h+='<div style="padding:2px 0 10px">'+p.lines.map((l,wi)=>{const q=l.split(/\s*;\s*/),got=have.has(clean(q[0]).toLowerCase());return '<div class="w" style="padding:6px 0;align-items:center"><div><b>'+show(q[0])+'</b><div class="mu">'+show(q[1])+'</div></div><div style="white-space:nowrap">'+(got?'<span class="mu">Added</span>':'<button class="e" style="font-size:16px" onclick="addWord('+ui+','+pi+','+wi+')">Add</button>')+'</div></div>'}).join('')+'</div>'}
     });
     h+='</div>';
   });
